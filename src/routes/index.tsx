@@ -13,6 +13,7 @@ import Reservations from "@/features/client/reservations/Reservations";
 import ProductsSupplier from "@/features/supplier/products/Products";
 import { Route, Routes } from "react-router-dom";
 import PrivateRoute from "./PrivateRoute";
+import PageWaiter from "@/features/waiter/pageWaiter";
 
 export default function AppRoutes() {
   return (
@@ -34,6 +35,10 @@ export default function AppRoutes() {
         <Route
           path="/contact"
           element={<Contact />}
+        />
+        <Route
+          path="/waiter"
+          element={<PageWaiter />}
         />
       </Route>
 
