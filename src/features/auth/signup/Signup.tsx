@@ -42,13 +42,13 @@ function Signup() {
       return;
     }
 
-    // firstName / lastName desde "Nombre Apellido..."
+   
     const parts = fullName.trim().split(/\s+/);
     const firstName = parts.shift() || "";
     const lastName  = parts.join(" ") || "-";
 
     const payload = {
-      username: email.split("@")[0], // o pide un username explícito si prefieres
+      username: email.split("@")[0], 
       email,
       password,
       firstName,

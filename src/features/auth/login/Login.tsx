@@ -1,18 +1,32 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import http from "../../../api/http";
 
 type LoginResponse = {
-  accessToken?: string;
-  token?: string;
-  jwt?: string;
+  success?: boolean;
+  message?: string;
+  data?: {
+    accessToken?: string;
+    refreshToken?: string;
+    sessionId?: string;
+    user?: {
+      username?: string;
+      email?: string;
+    };
+  };
 };
+
 function Login() {
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(true);
   const [showPwd, setShowPwd] = useState(false);
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
+
+  const EYE_OPEN = "/images/icons/eyes-open.png";
+  const EYE_OFF  = "/images/icons/eyes-off.png";
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,31 +39,37 @@ function Login() {
 
     try {
       setLoading(true);
-      const { data } = await http.post<LoginResponse>("/auth/login", {
-        email,
+
+      
+      const { data } = await http.post<LoginResponse>("/api/v1/auth/login", {
+        usernameOrEmail: email,
         password,
       });
 
-      const token = data.accessToken || data.token || data.jwt;
+      const token = data?.data?.accessToken;
       if (!token) throw new Error("Token no recibido");
 
-      remember
-        ? localStorage.setItem("access_token", token)
-        : sessionStorage.setItem("access_token", token);
+      // guarda el token
+      if (remember) localStorage.setItem("access_token", token);
+      else sessionStorage.setItem("access_token", token);
 
-      alert("✅ Inicio de sesión exitoso!");
+      console.log("Usuario logueado:", data.data?.user);
+
+      // ✅ redirige directamente al Home
+      navigate("/", { replace: true });
     } catch (error: any) {
-      setErr(
-        error?.response?.status === 401
-          ? "Credenciales incorrectas."
-          : "Error al iniciar sesión."
-      );
+      const msg =
+        error?.response?.data?.message ||
+        error?.response?.data?.errors?.[0]?.defaultMessage ||
+        (error?.response?.status === 401
+          ? "Credenciales incorrectas o cuenta no verificada."
+          : "Error al iniciar sesión.");
+      setErr(msg);
+      console.error("Login error:", error?.response?.data || error);
     } finally {
       setLoading(false);
     }
   };
-  const EYE_OPEN  = "/images/icons/eyes-off.png";
-  const EYE_OFF   = "/images/icons/eyes-open.png";
 
   return (
     <div className="w-full min-h-screen grid place-items-center bg-gray-50 p-4">
@@ -61,20 +81,18 @@ function Login() {
           </div>
         </div>
 
-        {/* Título */}
         <h2 className="text-2xl font-bold text-center text-gray-800 mb-8">
           Inicia sesión en <span className="text-red-600">Foráneos</span>
         </h2>
 
-        {/* Formulario */}
         <form className="space-y-5" onSubmit={handleLogin}>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Correo electrónico
+              Correo o nombre de usuario
             </label>
             <input
-              type="email"
-              placeholder="tu@email.com"
+              type="text"
+              placeholder="usuario o correo"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:outline-none"
@@ -99,11 +117,7 @@ function Login() {
                 className="absolute inset-y-0 right-3 flex items-center text-gray-500 hover:text-gray-700"
               >
                 <img
-                  src={
-                    showPwd
-                      ? EYE_OFF
-                      : EYE_OPEN
-                  }
+                  src={showPwd ? EYE_OPEN : EYE_OFF}
                   alt="Ver contraseña"
                   width={18}
                   height={18}
