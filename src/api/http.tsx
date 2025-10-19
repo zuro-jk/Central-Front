@@ -5,7 +5,7 @@ const http = axios.create({
   timeout: 15000,
 });
 
-// lee token desde localStorage o sessionStorage (por si NO marcas "Recuérdame")
+// lee token desde localStorage o sessionStorage
 const getToken = () =>
   localStorage.getItem("access_token") || sessionStorage.getItem("access_token");
 
