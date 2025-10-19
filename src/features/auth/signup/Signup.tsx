@@ -2,19 +2,14 @@ import { useState } from "react";
 import http from "../../../api/http";
 
 type RegisterResponse = {
-  accessToken?: string;
-  token?: string;
-  jwt?: string;
+  success?: boolean;
   message?: string;
+  data?: number; // id del usuario creado
 };
 
-// Ajusta si tu backend usa otros nombres
 const REGISTER_ENDPOINT = "/api/v1/auth/register";
-const FIELD_NAME  = "name";
-const FIELD_EMAIL = "email";
-const FIELD_PASS  = "password";
 
-// íconos en /public/images/icons/
+// íconos locales
 const EYE_OPEN = "/images/icons/eyes-open.png";
 const EYE_OFF  = "/images/icons/eyes-off.png";
 
@@ -34,44 +29,49 @@ function Signup() {
     setErr("");
     setOk("");
 
-    if (!fullName.trim() || !email.trim() || !password) {
-      setErr("Completa todos los campos."); return;
+    if (!fullName.trim() || !email.trim() || !password || !confirm) {
+      setErr("Completa todos los campos.");
+      return;
     }
-    if (password.length < 6) {
-      setErr("La contraseña debe tener al menos 6 caracteres."); return;
+    if (password.length < 8) {
+      setErr("La contraseña debe tener al menos 8 caracteres.");
+      return;
     }
     if (password !== confirm) {
-      setErr("Las contraseñas no coinciden."); return;
+      setErr("Las contraseñas no coinciden.");
+      return;
     }
 
-    const payload: Record<string, string> = {
-      [FIELD_NAME]: fullName.trim(),
-      [FIELD_EMAIL]: email.trim(),
-      [FIELD_PASS]: password,
+    // firstName / lastName desde "Nombre Apellido..."
+    const parts = fullName.trim().split(/\s+/);
+    const firstName = parts.shift() || "";
+    const lastName  = parts.join(" ") || "-";
+
+    const payload = {
+      username: email.split("@")[0], // o pide un username explícito si prefieres
+      email,
+      password,
+      firstName,
+      lastName,
     };
 
     try {
       setLoading(true);
-      const { data } = await http.post<RegisterResponse>(REGISTER_ENDPOINT, payload);
 
-      const token = data.accessToken || data.token || data.jwt;
-      if (token) {
-        localStorage.setItem("access_token", token);
-        setOk("Cuenta creada. Sesión iniciada ✅");
-      } else {
-        setOk(data?.message || "Cuenta creada. Ahora puedes iniciar sesión ✅");
-      }
+      
+      const { data } = await http.post<RegisterResponse>(REGISTER_ENDPOINT, payload, {
+        headers: { "Content-Type": "application/json" },
+      });
 
+      setOk(data?.message || "Cuenta creada. Revisa tu correo para activar la cuenta.");
       setFullName(""); setEmail(""); setPassword(""); setConfirm("");
     } catch (e: any) {
       const msg =
         e?.response?.data?.message ||
-        (e?.response?.status === 409
-          ? "El correo ya está registrado."
-          : e?.response?.status === 400
-          ? "Datos inválidos."
-          : "No se pudo registrar. Intenta de nuevo.");
+        e?.response?.data?.errors?.[0]?.defaultMessage ||
+        (e?.response?.status === 409 ? "El correo/usuario ya existe." : "No se pudo registrar.");
       setErr(msg);
+      console.error("Register error:", e?.response?.data || e);
     } finally {
       setLoading(false);
     }
@@ -79,7 +79,6 @@ function Signup() {
 
   return (
     <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8">
-      {/* Logo */}
       <div className="flex justify-center mb-6">
         <div className="h-12 w-12 bg-red-600 rounded-full flex items-center justify-center text-white font-bold text-xl">
           🍴
@@ -130,7 +129,13 @@ function Signup() {
               aria-label={showPwd ? "Ocultar contraseña" : "Mostrar contraseña"}
               title={showPwd ? "Ocultar contraseña" : "Mostrar contraseña"}
             >
-              <img src={showPwd ? EYE_OPEN :EYE_OFF } width={20} height={20} className="object-contain" alt="" />
+              <img
+                src={showPwd ? EYE_OFF : EYE_OPEN}  // ojo tachado cuando se muestra el texto
+                width={20}
+                height={20}
+                className="object-contain"
+                alt=""
+              />
             </button>
           </div>
         </div>
@@ -152,7 +157,13 @@ function Signup() {
               aria-label={showPwd2 ? "Ocultar contraseña" : "Mostrar contraseña"}
               title={showPwd2 ? "Ocultar contraseña" : "Mostrar contraseña"}
             >
-              <img src={showPwd2 ? EYE_OPEN :EYE_OFF} width={20} height={20} className="object-contain" alt="" />
+              <img
+                src={showPwd2 ? EYE_OFF : EYE_OPEN}
+                width={20}
+                height={20}
+                className="object-contain"
+                alt=""
+              />
             </button>
           </div>
         </div>
