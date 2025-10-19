@@ -7,10 +7,10 @@
     "react-is": "^19.0.0-rc-69d4b800-20241021"
   },
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --port 4200",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview --port 4200"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
