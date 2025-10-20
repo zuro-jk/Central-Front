@@ -3,8 +3,9 @@ import { useNavigate } from "react-router-dom";
 import { api } from "@/lib/api";
 
 function Login() {
-  const navigate = useNavigate();
+    const navigate = useNavigate();
   const [email, setEmail] = useState("");
+  const [remember, setRemember] = useState(false);
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -19,6 +20,7 @@ function Login() {
       if (!token) throw new Error("No se recibió token");
       localStorage.setItem("access_token", token);
       navigate("/admin/dashboard", { replace: true });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       const msg = err?.response?.data?.message || err?.message || "Error de autenticación";
       setError(String(msg));
@@ -27,18 +29,18 @@ function Login() {
     }
   }
   return (
-    <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8">
-      {/* Logo */}
-      <div className="flex justify-center mb-6">
-        <div className="h-12 w-12 bg-red-600 rounded-full flex items-center justify-center text-white font-bold text-xl">
-          🍴
+    <div className="w-full min-h-screen grid place-items-center bg-gray-50 p-4">
+      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8">
+        {/* Logo */}
+        <div className="flex justify-center mb-6">
+          <div className="h-12 w-12 bg-red-600 rounded-full flex items-center justify-center text-white font-bold text-xl">
+            🍴
+          </div>
         </div>
-      </div>
 
-      {/* Título */}
-      <h2 className="text-2xl font-bold text-center text-gray-800 mb-8">
-        Inicia sesión en <span className="text-red-600">Foráneos</span>
-      </h2>
+        <h2 className="text-2xl font-bold text-center text-gray-800 mb-8">
+          Inicia sesión en <span className="text-red-600">Foráneos</span>
+        </h2>
 
       {/* Formulario */}
       <form className="space-y-5" onSubmit={onSubmit}>
@@ -70,22 +72,20 @@ function Login() {
           />
         </div>
 
-        {/* Extra */}
-        <div className="flex items-center justify-between text-sm">
-          <label className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              className="rounded border-gray-300"
-            />
-            Recuérdame
-          </label>
-          <a
-            href="#"
-            className="text-red-600 hover:underline"
-          >
-            ¿Olvidaste tu contraseña?
-          </a>
-        </div>
+          <div className="flex items-center justify-between text-sm">
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={remember}
+                onChange={(e) => setRemember(e.target.checked)}
+                className="rounded border-gray-300"
+              />
+              Recuérdame
+            </label>
+            <a href="#" className="text-red-600 hover:underline">
+              ¿Olvidaste tu contraseña?
+            </a>
+          </div>
 
         {/* Botón */}
         <button
@@ -100,15 +100,15 @@ function Login() {
         )}
       </form>
 
-      {/* Separador */}
-      <div className="mt-6 text-center text-sm text-gray-500">
-        ¿No tienes cuenta?{" "}
-        <a
-          href="/auth/signup"
-          className="text-red-600 font-semibold hover:underline"
-        >
-          Regístrate
-        </a>
+        <div className="mt-6 text-center text-sm text-gray-500">
+          ¿No tienes cuenta?{" "}
+          <a
+            href="/auth/signup"
+            className="text-red-600 font-semibold hover:underline"
+          >
+            Regístrate
+          </a>
+        </div>
       </div>
     </div>
   );
