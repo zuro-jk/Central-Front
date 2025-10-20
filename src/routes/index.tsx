@@ -2,6 +2,9 @@ import { PrivateLayout, PublicLayout } from "@/components/layouts";
 import AuthLayout from "@/components/layouts/AuthLayout/AuthLayout";
 import NotFound from "@/components/NotFound";
 import DashboardAdmin from "@/features/admin/dashboard/Dashboard";
+import ProductsAdmin from "@/features/admin/products/Products";
+import ReportsAdmin from "@/features/admin/reports/Reports";
+import UsersAdmin from "@/features/admin/users/Users";
 import Login from "@/features/auth/login/Login";
 import Signup from "@/features/auth/signup/Signup";
 import SalesCashier from "@/features/cashier/sales/Sales";
@@ -12,6 +15,7 @@ import Menu from "@/features/client/menu/Menu";
 import Reservations from "@/features/client/reservations/Reservations";
 import ProductsSupplier from "@/features/supplier/products/Products";
 import { Route, Routes } from "react-router-dom";
+import AdminLayout from "@/components/layouts/AdminLayout/AdminLayout";
 import PrivateRoute from "./PrivateRoute";
 import PageWaiter from "@/features/waiter/pageWaiter";
 
@@ -53,28 +57,26 @@ export default function AppRoutes() {
         />
       </Route>
 
+      <Route element={<AdminLayout />}>
+        <Route path="/admin/products" element={<ProductsAdmin />} />
+      </Route>
+
       <Route element={<PrivateRoute />}>
+        {/* Admin (sin header/footer privado) */}
+        <Route element={<AdminLayout />}>
+          <Route path="/admin/dashboard" element={<DashboardAdmin />} />
+          <Route path="/admin/reports" element={<ReportsAdmin />} />
+          <Route path="/admin/users" element={<UsersAdmin />} />
+        </Route>
+
+        {/* Resto de privadas mantienen PrivateLayout */}
         <Route element={<PrivateLayout />}>
-          {/* Admin */}
-          <Route
-            path="/admin/dashboard"
-            element={<DashboardAdmin />}
-          />
           {/* Chef */}
-          <Route
-            path="/chef/orders"
-            element={<OrdersChef />}
-          />
+          <Route path="/chef/orders" element={<OrdersChef />} />
           {/* Cashier */}
-          <Route
-            path="/cashier/sales"
-            element={<SalesCashier />}
-          />
+          <Route path="/cashier/sales" element={<SalesCashier />} />
           {/* Supplier */}
-          <Route
-            path="/supplier/products"
-            element={<ProductsSupplier />}
-          />
+          <Route path="/supplier/products" element={<ProductsSupplier />} />
         </Route>
       </Route>
 
