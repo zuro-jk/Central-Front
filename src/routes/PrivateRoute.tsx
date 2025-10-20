@@ -2,13 +2,14 @@ import { Navigate, Outlet } from "react-router-dom";
 
 const PrivateRoute = () => {
   // const { isLoggedIn } = useAuthStore();
-  const isLoggedIn = false;
+  const token = localStorage.getItem("access_token") || import.meta.env.VITE_DEV_BEARER;
+  const isLoggedIn = Boolean(token);
 
   return isLoggedIn ? (
     <Outlet />
   ) : (
     <Navigate
-      to="/auth"
+      to="/auth/login"
       replace
     />
   );

@@ -1,4 +1,31 @@
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { api } from "@/lib/api";
+
 function Login() {
+  const navigate = useNavigate();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  async function onSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+    try {
+      const res = await api.post("/auth/login", { email, password });
+      const token = res.data?.access_token || res.data?.token;
+      if (!token) throw new Error("No se recibió token");
+      localStorage.setItem("access_token", token);
+      navigate("/admin/dashboard", { replace: true });
+    } catch (err: any) {
+      const msg = err?.response?.data?.message || err?.message || "Error de autenticación";
+      setError(String(msg));
+    } finally {
+      setLoading(false);
+    }
+  }
   return (
     <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8">
       {/* Logo */}
@@ -14,7 +41,7 @@ function Login() {
       </h2>
 
       {/* Formulario */}
-      <form className="space-y-5">
+      <form className="space-y-5" onSubmit={onSubmit}>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Correo electrónico
@@ -23,6 +50,9 @@ function Login() {
             type="email"
             placeholder="tu@email.com"
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:outline-none"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
           />
         </div>
 
@@ -34,6 +64,9 @@ function Login() {
             type="password"
             placeholder="••••••••"
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:outline-none"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
           />
         </div>
 
@@ -57,10 +90,14 @@ function Login() {
         {/* Botón */}
         <button
           type="submit"
-          className="w-full bg-red-600 text-white py-2 rounded-lg font-semibold hover:bg-red-700 transition-colors"
+          disabled={loading}
+          className="w-full bg-red-600 text-white py-2 rounded-lg font-semibold hover:bg-red-700 transition-colors disabled:opacity-60"
         >
-          Iniciar sesión
+          {loading ? "Ingresando..." : "Iniciar sesión"}
         </button>
+        {error && (
+          <div className="text-red-600 text-sm text-center">{error}</div>
+        )}
       </form>
 
       {/* Separador */}
