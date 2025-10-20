@@ -1,5 +1,5 @@
 import { useState } from "react";
-import http from "../../../api/http";
+import http from "../../../core/api/http";
 
 type RegisterResponse = {
   success?: boolean;
@@ -11,18 +11,18 @@ const REGISTER_ENDPOINT = "/api/v1/auth/register";
 
 // íconos locales
 const EYE_OPEN = "/images/icons/eyes-open.png";
-const EYE_OFF  = "/images/icons/eyes-off.png";
+const EYE_OFF = "/images/icons/eyes-off.png";
 
 function Signup() {
   const [fullName, setFullName] = useState("");
-  const [email, setEmail]       = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [confirm, setConfirm]   = useState("");
-  const [showPwd, setShowPwd]   = useState(false);
+  const [confirm, setConfirm] = useState("");
+  const [showPwd, setShowPwd] = useState(false);
   const [showPwd2, setShowPwd2] = useState(false);
-  const [loading, setLoading]   = useState(false);
-  const [err, setErr]           = useState("");
-  const [ok, setOk]             = useState("");
+  const [loading, setLoading] = useState(false);
+  const [err, setErr] = useState("");
+  const [ok, setOk] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,13 +42,12 @@ function Signup() {
       return;
     }
 
-   
     const parts = fullName.trim().split(/\s+/);
     const firstName = parts.shift() || "";
-    const lastName  = parts.join(" ") || "-";
+    const lastName = parts.join(" ") || "-";
 
     const payload = {
-      username: email.split("@")[0], 
+      username: email.split("@")[0],
       email,
       password,
       firstName,
@@ -58,18 +57,29 @@ function Signup() {
     try {
       setLoading(true);
 
-      
-      const { data } = await http.post<RegisterResponse>(REGISTER_ENDPOINT, payload, {
-        headers: { "Content-Type": "application/json" },
-      });
+      const { data } = await http.post<RegisterResponse>(
+        REGISTER_ENDPOINT,
+        payload,
+        {
+          headers: { "Content-Type": "application/json" },
+        }
+      );
 
-      setOk(data?.message || "Cuenta creada. Revisa tu correo para activar la cuenta.");
-      setFullName(""); setEmail(""); setPassword(""); setConfirm("");
+      setOk(
+        data?.message ||
+          "Cuenta creada. Revisa tu correo para activar la cuenta."
+      );
+      setFullName("");
+      setEmail("");
+      setPassword("");
+      setConfirm("");
     } catch (e: any) {
       const msg =
         e?.response?.data?.message ||
         e?.response?.data?.errors?.[0]?.defaultMessage ||
-        (e?.response?.status === 409 ? "El correo/usuario ya existe." : "No se pudo registrar.");
+        (e?.response?.status === 409
+          ? "El correo/usuario ya existe."
+          : "No se pudo registrar.");
       setErr(msg);
       console.error("Register error:", e?.response?.data || e);
     } finally {
@@ -89,9 +99,14 @@ function Signup() {
         Crea tu cuenta en <span className="text-red-600">Foráneos</span>
       </h2>
 
-      <form className="space-y-5" onSubmit={handleSubmit}>
+      <form
+        className="space-y-5"
+        onSubmit={handleSubmit}
+      >
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Nombre completo</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Nombre completo
+          </label>
           <input
             type="text"
             placeholder="Juan Pérez"
@@ -102,7 +117,9 @@ function Signup() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Correo electrónico</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Correo electrónico
+          </label>
           <input
             type="email"
             placeholder="tu@email.com"
@@ -113,7 +130,9 @@ function Signup() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Contraseña</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Contraseña
+          </label>
           <div className="relative">
             <input
               type={showPwd ? "text" : "password"}
@@ -130,7 +149,7 @@ function Signup() {
               title={showPwd ? "Ocultar contraseña" : "Mostrar contraseña"}
             >
               <img
-                src={showPwd ? EYE_OFF : EYE_OPEN}  // ojo tachado cuando se muestra el texto
+                src={showPwd ? EYE_OFF : EYE_OPEN} // ojo tachado cuando se muestra el texto
                 width={20}
                 height={20}
                 className="object-contain"
@@ -141,7 +160,9 @@ function Signup() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Confirmar contraseña</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Confirmar contraseña
+          </label>
           <div className="relative">
             <input
               type={showPwd2 ? "text" : "password"}
@@ -154,7 +175,9 @@ function Signup() {
               type="button"
               onClick={() => setShowPwd2((s) => !s)}
               className="absolute inset-y-0 right-3 flex items-center text-gray-500 hover:text-gray-700"
-              aria-label={showPwd2 ? "Ocultar contraseña" : "Mostrar contraseña"}
+              aria-label={
+                showPwd2 ? "Ocultar contraseña" : "Mostrar contraseña"
+              }
               title={showPwd2 ? "Ocultar contraseña" : "Mostrar contraseña"}
             >
               <img
@@ -168,8 +191,16 @@ function Signup() {
           </div>
         </div>
 
-        {err && <p className="text-sm text-red-600 bg-red-50 border border-red-100 p-2 rounded">{err}</p>}
-        {ok &&  <p className="text-sm text-green-700 bg-green-50 border border-green-100 p-2 rounded">{ok}</p>}
+        {err && (
+          <p className="text-sm text-red-600 bg-red-50 border border-red-100 p-2 rounded">
+            {err}
+          </p>
+        )}
+        {ok && (
+          <p className="text-sm text-green-700 bg-green-50 border border-green-100 p-2 rounded">
+            {ok}
+          </p>
+        )}
 
         <button
           type="submit"
@@ -182,7 +213,10 @@ function Signup() {
 
       <div className="mt-6 text-center text-sm text-gray-500">
         ¿Ya tienes una cuenta?{" "}
-        <a href="/auth/login" className="text-red-600 font-semibold hover:underline">
+        <a
+          href="/auth/login"
+          className="text-red-600 font-semibold hover:underline"
+        >
           Inicia sesión
         </a>
       </div>

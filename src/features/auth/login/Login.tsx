@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import http from "../../../api/http";
+import http from "../../../core/api/http";
 
 type LoginResponse = {
   success?: boolean;
@@ -26,7 +26,7 @@ function Login() {
   const [err, setErr] = useState("");
 
   const EYE_OPEN = "/images/icons/eyes-open.png";
-  const EYE_OFF  = "/images/icons/eyes-off.png";
+  const EYE_OFF = "/images/icons/eyes-off.png";
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,7 +40,6 @@ function Login() {
     try {
       setLoading(true);
 
-      
       const { data } = await http.post<LoginResponse>("/api/v1/auth/login", {
         usernameOrEmail: email,
         password,
@@ -56,7 +55,7 @@ function Login() {
       console.log("Usuario logueado:", data.data?.user);
 
       navigate("/", { replace: true });
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       const msg =
         error?.response?.data?.message ||
@@ -85,7 +84,10 @@ function Login() {
           Inicia sesión en <span className="text-red-600">Foráneos</span>
         </h2>
 
-        <form className="space-y-5" onSubmit={handleLogin}>
+        <form
+          className="space-y-5"
+          onSubmit={handleLogin}
+        >
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Correo o nombre de usuario
@@ -136,7 +138,10 @@ function Login() {
               />
               Recuérdame
             </label>
-            <a href="#" className="text-red-600 hover:underline">
+            <a
+              href="#"
+              className="text-red-600 hover:underline"
+            >
               ¿Olvidaste tu contraseña?
             </a>
           </div>
