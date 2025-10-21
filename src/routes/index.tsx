@@ -36,10 +36,6 @@ export default function AppRoutes() {
           path="/contact"
           element={<Contact />}
         />
-        <Route
-          path="/waiter"
-          element={<PageWaiter />}
-        />
       </Route>
 
       <Route element={<AuthLayout />}>
@@ -75,7 +71,13 @@ export default function AppRoutes() {
             path="/supplier/products"
             element={<ProductsSupplier />}
           />
-        </Route>
+        
+          {/* Waiter */}
+          <Route
+            path="/waiter/*"
+            element={<PageWaiter />}
+          />
+          </Route>
       </Route>
 
       {/* Ruta fallback */}
