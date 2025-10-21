@@ -82,7 +82,7 @@ function PublicHeader() {
             className="hover:text-yellow-100 transition"
           >
             Contacto
-          </a>
+          </a> 
         </nav>
 
         <div className="flex items-center space-x-3 p-4">

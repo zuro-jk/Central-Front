@@ -81,7 +81,7 @@ function Login() {
         </div>
 
         <h2 className="text-2xl font-bold text-center text-gray-800 mb-8">
-          Inicia sesión en <span className="text-red-600">Foráneos</span>
+          Inicia sesión en <span className="text-red-600">Central</span>
         </h2>
 
         <form
