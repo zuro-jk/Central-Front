@@ -1,10 +1,51 @@
+import { useAuthStore } from "@/core/stores/auth.store";
 import { Link } from "react-router-dom";
 import Button from "../ui/Button";
+
+function UserSection() {
+  const { user, accessToken, logout } = useAuthStore();
+
+  const isLoggedIn = Boolean(accessToken && user);
+
+  if (isLoggedIn && user) {
+    const isAdmin = user.roles?.includes("ROLE_ADMIN");
+
+    return (
+      <div className="flex items-center space-x-3">
+        <span className="text-sm">Hola, {user.firstName || user.username}</span>
+        {isAdmin && (
+          <Link to="/admin/dashboard">
+            <Button>Dashboard</Button>
+          </Link>
+        )}
+        <Button
+          onClick={logout}
+          variant="outline"
+          className="text-white hover:text-black"
+        >
+          Cerrar sesión
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <Link to="/auth/login">
+        <Button>Iniciar Sesión</Button>
+      </Link>
+      <Link to="/auth/signup">
+        <Button>Registrarse</Button>
+      </Link>
+    </>
+  );
+}
 
 function PublicHeader() {
   return (
     <header className="bg-gradient-to-r from-red-600 via-orange-500 to-yellow-500 text-white shadow-md">
       <div className="flex justify-between items-center h-16 container mx-auto">
+        {/* Logo */}
         <div className="flex items-center space-x-2">
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -23,40 +64,37 @@ function PublicHeader() {
           <span className="text-xl font-bold tracking-wide">Foráneos</span>
         </div>
 
+        {/* Nav links */}
         <nav className="hidden md:flex space-x-10 font-medium gap-4">
-          <a
-            href="/"
+          <Link
+            to="/"
             className="hover:text-yellow-100 transition"
           >
             Inicio
-          </a>
-          <a
-            href="/menu"
+          </Link>
+          <Link
+            to="/menu"
             className="hover:text-yellow-100 transition"
           >
             Menú
-          </a>
-          <a
-            href="/reservations"
+          </Link>
+          <Link
+            to="/reservations"
             className="hover:text-yellow-100 transition"
           >
             Reservas
-          </a>
-          <a
-            href="/contact"
+          </Link>
+          <Link
+            to="/contact"
             className="hover:text-yellow-100 transition"
           >
             Contacto
-          </a>
+          </Link>
         </nav>
 
+        {/* User section */}
         <div className="flex items-center space-x-3 p-4">
-          <Link to="/auth/login">
-            <Button>Iniciar Sesion</Button>
-          </Link>
-          <Link to="/auth/signup">
-            <Button>Registrarse</Button>
-          </Link>
+          <UserSection />
         </div>
       </div>
     </header>

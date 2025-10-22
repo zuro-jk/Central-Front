@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { FaStar } from "react-icons/fa";
-import type { Dish } from "../Types/dish";
 import ProductDrawer from "../Card/ProductDrawer";
+import type { Dish } from "../Types/dish";
 
 function Menu() {
   const categories = [
@@ -90,7 +90,11 @@ function Menu() {
   const handleClose = () => setSelectedDish(null);
 
   const drawer = selectedDish ? (
-    <ProductDrawer dish={selectedDish} isOpen={true} onClose={handleClose} />
+    <ProductDrawer
+      dish={selectedDish}
+      isOpen={true}
+      onClose={handleClose}
+    />
   ) : null;
 
   return (
