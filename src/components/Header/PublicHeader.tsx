@@ -1,25 +1,30 @@
+import { useAuthStore } from "@/core/stores/auth.store";
 import { Link } from "react-router-dom";
-import { useAuthStore } from "@/core/stores/authStore";
 import Button from "../ui/Button";
 
 function UserSection() {
-  const { user, isLoggedIn, logout } = useAuthStore();
+  const { user, accessToken, logout } = useAuthStore();
+
+  const isLoggedIn = Boolean(accessToken && user);
 
   if (isLoggedIn && user) {
+    const isAdmin = user.roles?.includes("ROLE_ADMIN");
+
     return (
       <div className="flex items-center space-x-3">
-        <span className="text-sm">Hola, {user.name}</span>
-        {user.role === 'admin' && (
+        <span className="text-sm">Hola, {user.firstName || user.username}</span>
+        {isAdmin && (
           <Link to="/admin/dashboard">
             <Button>Dashboard</Button>
           </Link>
         )}
-        <button
+        <Button
           onClick={logout}
-          className="px-3 py-1 text-sm bg-red-700 hover:bg-red-800 rounded transition-colors"
+          variant="outline"
+          className="text-white hover:text-black"
         >
           Cerrar sesión
-        </button>
+        </Button>
       </div>
     );
   }
@@ -40,6 +45,7 @@ function PublicHeader() {
   return (
     <header className="bg-gradient-to-r from-red-600 via-orange-500 to-yellow-500 text-white shadow-md">
       <div className="flex justify-between items-center h-16 container mx-auto">
+        {/* Logo */}
         <div className="flex items-center space-x-2">
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -58,33 +64,35 @@ function PublicHeader() {
           <span className="text-xl font-bold tracking-wide">Foráneos</span>
         </div>
 
+        {/* Nav links */}
         <nav className="hidden md:flex space-x-10 font-medium gap-4">
-          <a
-            href="/"
+          <Link
+            to="/"
             className="hover:text-yellow-100 transition"
           >
             Inicio
-          </a>
-          <a
-            href="/menu"
+          </Link>
+          <Link
+            to="/menu"
             className="hover:text-yellow-100 transition"
           >
             Menú
-          </a>
-          <a
-            href="/reservations"
+          </Link>
+          <Link
+            to="/reservations"
             className="hover:text-yellow-100 transition"
           >
             Reservas
-          </a>
-          <a
-            href="/contact"
+          </Link>
+          <Link
+            to="/contact"
             className="hover:text-yellow-100 transition"
           >
             Contacto
-          </a> 
+          </Link>
         </nav>
 
+        {/* User section */}
         <div className="flex items-center space-x-3 p-4">
           <UserSection />
         </div>
