@@ -1,302 +1,204 @@
-import { FaUsers, FaUtensils, FaChartLine, FaDollarSign, FaCalendarAlt, FaClock, FaShoppingCart, FaStar, FaSignOutAlt } from "react-icons/fa";
-import { useAuthStore } from "../../../core/stores/authStore";
-import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
+import { api } from "@/lib/api";
 
 function Dashboard() {
-  const { logout, user } = useAuthStore();
-  const navigate = useNavigate();
+  const [productCount, setProductCount] = useState<number | null>(null);
+  const [ordersTodayTotal, setOrdersTodayTotal] = useState<number | null>(null);
+  const [ordersCount, setOrdersCount] = useState<number | null>(null);
+  const [usersCount, setUsersCount] = useState<number | null>(null);
 
-  const handleLogout = () => {
-    logout();
-    navigate("/");
-  };
+  // Contar productos reales desde el backend (GET /api/v1/products)
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const res = await api.get("/api/v1/products");
+        const list = (res.data?.data || []) as any[];
+        if (mounted) setProductCount(Array.isArray(list) ? list.length : null);
+      } catch (_) {
+        // silencioso: mantener mock si falla
+      }
+    })();
+    return () => { mounted = false; };
+  }, []);
 
-  // Datos estáticos para el dashboard
-  const stats = {
-    totalUsers: 1247,
-    totalOrders: 89,
-    totalRevenue: 12450,
-    avgRating: 4.8,
-    todayOrders: 23,
-    pendingReservations: 8,
-    monthlyGrowth: 15.3,
-    popularDish: "Lomo Saltado",
-    activeStaff: 12,
-    tableOccupancy: 78
-  };
+  // Obtener órdenes y calcular ventas de hoy y conteo
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const token = localStorage.getItem("access_token");
+        const res = await api.get("/api/v1/orders", token ? { headers: { Authorization: `Bearer ${token}` } } : undefined);
+        const orders = (res.data?.data || []) as Array<{ total?: number; date?: string }>; 
+        const today = new Date();
+        let total = 0;
+        let count = 0;
+        for (const o of orders) {
+          if (!o?.date) continue;
+          const d = new Date(o.date as any);
+          if (d.getFullYear() === today.getFullYear() && d.getMonth() === today.getMonth() && d.getDate() === today.getDate()) {
+            total += Number(o.total || 0);
+          }
+          count += 1;
+        }
+        if (mounted) {
+          setOrdersTodayTotal(total);
+          setOrdersCount(count);
+        }
+      } catch (_) {
+        // silencioso
+      }
+    })();
+    return () => { mounted = false; };
+  }, []);
 
-  const salesData = [
-    { day: "Lun", sales: 850 },
-    { day: "Mar", sales: 920 },
-    { day: "Mié", sales: 1100 },
-    { day: "Jue", sales: 980 },
-    { day: "Vie", sales: 1350 },
-    { day: "Sáb", sales: 1800 },
-    { day: "Dom", sales: 1650 }
-  ];
+  // Obtener conteo de usuarios si hay token
+  useEffect(() => {
+    let mounted = true;
+    const token = localStorage.getItem("access_token");
+    if (!token) return;
+    (async () => {
+      try {
+        const res = await api.get("/api/v1/users/admin", { headers: { Authorization: `Bearer ${token}` } });
+        const list = (res.data?.data || []) as any[];
+        if (mounted) setUsersCount(Array.isArray(list) ? list.length : null);
+      } catch (_) {}
+    })();
+    return () => { mounted = false; };
+  }, []);
 
-  const topDishes = [
-    { name: "Lomo Saltado", orders: 45, revenue: 1260 },
-    { name: "Ceviche Peruano", orders: 38, revenue: 1140 },
-    { name: "Pizza Margherita", orders: 32, revenue: 800 },
-    { name: "Hamburguesa Clásica", orders: 28, revenue: 616 }
-  ];
-
-  const recentOrders = [
-    { id: "#001", customer: "María García", items: "Lomo Saltado, Ceviche", total: 58, status: "Completado" },
-    { id: "#002", customer: "Juan Pérez", items: "Pizza Margherita", total: 25, status: "En preparación" },
-    { id: "#003", customer: "Ana López", items: "Hamburguesa, Limonada", total: 32, status: "Pendiente" },
-    { id: "#004", customer: "Carlos Ruiz", items: "Tiramisú, Café", total: 22, status: "Completado" }
-  ];
-
-  const recentReservations = [
-    { id: 1, name: "Roberto Silva", date: "2025-01-12", time: "19:30", guests: 4, table: "Mesa Interior" },
-    { id: 2, name: "Elena Morales", date: "2025-01-12", time: "20:00", guests: 2, table: "Terraza" },
-    { id: 3, name: "Diego Castro", date: "2025-01-13", time: "13:00", guests: 6, table: "Salón Privado" }
-  ];
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "Completado": return "bg-green-100 text-green-800";
-      case "En preparación": return "bg-yellow-100 text-yellow-800";
-      case "Pendiente": return "bg-red-100 text-red-800";
-      default: return "bg-gray-100 text-gray-800";
-    }
+  // Gráfico vacío si no hay datos (se alimentará desde Reports)
+  const data = useMemo(() => Array.from({ length: 14 }, (_, i) => ({ label: `D${i + 1}`, value: 0 })), []);
+  const totals = {
+    total: data.reduce((acc, d) => acc + d.value, 0),
+    avg: Math.round(data.reduce((acc, d) => acc + d.value, 0) / data.length),
+    best: data.reduce((a, b) => (a.value > b.value ? a : b)),
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-6">
-      <div className="max-w-7xl mx-auto">
-        {/* Header con botón de logout */}
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-4xl font-bold text-gray-800 mb-2">Dashboard Administrativo</h1>
-            <p className="text-gray-600">Bienvenido, {user?.name || 'Admin'}</p>
-          </div>
-          <button 
-            onClick={handleLogout}
-            className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors flex items-center gap-2"
-          >
-            <FaSignOutAlt />
-            Cerrar Sesión
-          </button>
+    <section className="space-y-8">
+      <div className="flex items-center justify-between">
+        <div>
+          <nav className="text-sm text-gray-500">Admin / <span className="text-gray-700">Dashboard</span></nav>
+          <h1 className="mt-1 text-2xl md:text-3xl font-bold text-gray-900">Panel de administración</h1>
+          <p className="text-gray-600 mt-1">Resumen de negocio y accesos clave</p>
         </div>
-
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-blue-500">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Total Usuarios</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.totalUsers}</p>
-              </div>
-              <FaUsers className="text-3xl text-blue-500" />
-            </div>
-          </div>
-          
-          <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-green-500">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Pedidos Hoy</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.todayOrders}</p>
-              </div>
-              <FaShoppingCart className="text-3xl text-green-500" />
-            </div>
-          </div>
-          
-          <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-yellow-500">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Ingresos</p>
-                <p className="text-2xl font-bold text-gray-900">S/ {stats.totalRevenue}</p>
-              </div>
-              <FaDollarSign className="text-3xl text-yellow-500" />
-            </div>
-          </div>
-          
-          <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-purple-500">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Calificación</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.avgRating}</p>
-              </div>
-              <FaStar className="text-3xl text-purple-500" />
-            </div>
-          </div>
-        </div>
-
-        {/* Additional Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
-          <div className="bg-white rounded-lg shadow p-4 text-center">
-            <p className="text-sm text-gray-600">Reservas Pendientes</p>
-            <p className="text-xl font-bold text-red-600">{stats.pendingReservations}</p>
-          </div>
-          <div className="bg-white rounded-lg shadow p-4 text-center">
-            <p className="text-sm text-gray-600">Crecimiento Mensual</p>
-            <p className="text-xl font-bold text-green-600">+{stats.monthlyGrowth}%</p>
-          </div>
-          <div className="bg-white rounded-lg shadow p-4 text-center">
-            <p className="text-sm text-gray-600">Plato Popular</p>
-            <p className="text-sm font-semibold text-gray-800">{stats.popularDish}</p>
-          </div>
-          <div className="bg-white rounded-lg shadow p-4 text-center">
-            <p className="text-sm text-gray-600">Personal Activo</p>
-            <p className="text-xl font-bold text-blue-600">{stats.activeStaff}</p>
-          </div>
-          <div className="bg-white rounded-lg shadow p-4 text-center">
-            <p className="text-sm text-gray-600">Ocupación Mesas</p>
-            <p className="text-xl font-bold text-orange-600">{stats.tableOccupancy}%</p>
-          </div>
-        </div>
-
-        {/* Charts and Lists */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-          {/* Sales Chart */}
-          <div className="bg-white rounded-xl shadow-lg p-6">
-            <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-              <FaChartLine className="text-blue-500" />
-              Ventas de la Semana
-            </h3>
-            <div className="space-y-3">
-              {salesData.map((item) => (
-                <div key={item.day} className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-gray-600">{item.day}</span>
-                  <div className="flex items-center gap-3 flex-1 mx-4">
-                    <div className="flex-1 bg-gray-200 rounded-full h-2">
-                      <div 
-                        className="bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full"
-                        style={{ width: `${(item.sales / 2000) * 100}%` }}
-                      ></div>
-                    </div>
-                    <span className="text-sm font-bold text-gray-800">S/ {item.sales}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Top Dishes */}
-          <div className="bg-white rounded-xl shadow-lg p-6">
-            <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-              <FaUtensils className="text-red-500" />
-              Platos Más Vendidos
-            </h3>
-            <div className="space-y-3">
-              {topDishes.map((dish) => (
-                <div key={dish.name} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <div>
-                    <p className="font-semibold text-gray-800">{dish.name}</p>
-                    <p className="text-sm text-gray-600">{dish.orders} pedidos</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-bold text-green-600">S/ {dish.revenue}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Recent Orders and Reservations */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-          {/* Recent Orders */}
-          <div className="bg-white rounded-xl shadow-lg p-6">
-            <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-              <FaShoppingCart className="text-green-500" />
-              Pedidos Recientes
-            </h3>
-            <div className="space-y-3">
-              {recentOrders.map((order) => (
-                <div key={order.id} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="font-semibold text-gray-800">{order.id}</span>
-                      <span className={`px-2 py-1 rounded-full text-xs font-semibold ${getStatusColor(order.status)}`}>
-                        {order.status}
-                      </span>
-                    </div>
-                    <p className="text-sm text-gray-600">{order.customer}</p>
-                    <p className="text-xs text-gray-500">{order.items}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-bold text-green-600">S/ {order.total}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Recent Reservations */}
-          <div className="bg-white rounded-xl shadow-lg p-6">
-            <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-              <FaCalendarAlt className="text-purple-500" />
-              Reservas Recientes
-            </h3>
-            <div className="space-y-3">
-              {recentReservations.map((reservation) => (
-                <div key={reservation.id} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
-                  <div className="flex-1">
-                    <p className="font-semibold text-gray-800">{reservation.name}</p>
-                    <div className="flex items-center gap-4 text-sm text-gray-600">
-                      <span className="flex items-center gap-1">
-                        <FaCalendarAlt className="text-xs" />
-                        {reservation.date}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <FaClock className="text-xs" />
-                        {reservation.time}
-                      </span>
-                    </div>
-                    <p className="text-xs text-gray-500">{reservation.table}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-bold text-blue-600">{reservation.guests} personas</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Quick Actions */}
-        <div className="bg-white rounded-xl shadow-lg p-6">
-          <h3 className="text-xl font-bold text-gray-800 mb-4">Acciones Rápidas</h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <button 
-              onClick={() => navigate('/admin/products')}
-              className="p-4 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg hover:from-red-600 hover:to-red-700 transition-all transform hover:scale-105 flex flex-col items-center gap-2"
-            >
-              <FaUtensils className="text-2xl" />
-              <span className="font-semibold">Gestionar Menú</span>
-            </button>
-            
-            <button 
-              onClick={() => navigate('/admin/users')}
-              className="p-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all transform hover:scale-105 flex flex-col items-center gap-2"
-            >
-              <FaUsers className="text-2xl" />
-              <span className="font-semibold">Gestionar Usuarios</span>
-            </button>
-            
-            <button 
-              onClick={() => navigate('/admin/reports')}
-              className="p-4 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 transition-all transform hover:scale-105 flex flex-col items-center gap-2"
-            >
-              <FaChartLine className="text-2xl" />
-              <span className="font-semibold">Ver Reportes</span>
-            </button>
-            
-            <button 
-              onClick={() => navigate('/admin/reservations')}
-              className="p-4 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-lg hover:from-purple-600 hover:to-purple-700 transition-all transform hover:scale-105 flex flex-col items-center gap-2"
-            >
-              <FaCalendarAlt className="text-2xl" />
-              <span className="font-semibold">Gestionar Reservas</span>
-            </button>
-          </div>
+        <div className="hidden md:flex gap-2">
+          <Link to="/admin/reports" className="px-3 py-2 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50">Ver reportes</Link>
+          <Link to="/admin/products" className="px-3 py-2 rounded-md bg-red-600 text-white hover:bg-red-700">Nuevo producto</Link>
         </div>
       </div>
-    </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        {[
+          { label: "Ventas (hoy)", value: ordersTodayTotal !== null ? `S/ ${ordersTodayTotal.toFixed(2)}` : "—", path: "/admin/reports" },
+          { label: "Pedidos activos", value: ordersCount !== null ? String(ordersCount) : "—", path: "/chef/orders" },
+          { label: "Productos activos", value: productCount !== null ? String(productCount) : "—", path: "/admin/products" },
+          { label: "Usuarios", value: usersCount !== null ? String(usersCount) : "—", path: "/admin/users" },
+        ].map((s) => (
+          <Link
+            key={s.label}
+            to={s.path}
+            className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm hover:shadow transition-shadow"
+          >
+            <div className="text-xs uppercase tracking-wide text-gray-500">{s.label}</div>
+            <div className="text-2xl font-semibold text-gray-900 mt-1">{s.value}</div>
+            <div className="text-red-600 text-sm mt-2">Detalles →</div>
+          </Link>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 rounded-2xl border border-gray-200 bg-white p-6">
+          <h2 className="text-lg font-semibold text-gray-900">Ventas recientes</h2>
+          <Link to="/admin/reports" className="block mt-4">
+            <div className="h-48 rounded-lg bg-gradient-to-b from-red-50 to-amber-50 border border-amber-200 px-3 py-3">
+              <div className="h-full flex items-end gap-2">
+                {data.map((d, idx) => {
+                  const delay = 40 * idx;
+                  const h = Math.max(8, Math.min(100, Math.round((d.value / 1000) * 100)));
+                  return (
+                    <div key={d.label} className="flex-1 group">
+                      <div
+                        className="w-full bg-red-300/70 group-hover:bg-red-400 transition-[height,background-color] duration-700 ease-out rounded-md"
+                        style={{ height: 0, animation: `growBar 800ms ${delay}ms forwards`, ['--bar-h' as any]: `${h}px` }}
+                        aria-label={`${d.label}: S/ ${d.value}`}
+                        title={`${d.label}: S/ ${d.value}`}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </Link>
+          <style>{`
+            @keyframes growBar { from { height: 0; } to { height: var(--bar-h); } }
+          `}</style>
+          
+          {/* Resumen de ventas recientes */}
+          <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
+            <div className="rounded-lg border border-gray-200 bg-white/60 p-3">
+              <div className="text-gray-500">Total 14 días</div>
+              <div className="font-semibold text-gray-900">S/ {totals.total.toFixed(2)}</div>
+            </div>
+            <div className="rounded-lg border border-gray-200 bg-white/60 p-3">
+              <div className="text-gray-500">Promedio diario</div>
+              <div className="font-semibold text-gray-900">S/ {totals.avg.toFixed(2)}</div>
+            </div>
+            <div className="rounded-lg border border-gray-200 bg-white/60 p-3">
+              <div className="text-gray-500">Mejor día</div>
+              <div className="font-semibold text-gray-900">{totals.best.label}: S/ {totals.best.value.toFixed(2)}</div>
+            </div>
+          </div>
+        </div>
+        <div className="rounded-2xl border border-gray-200 bg-white p-6">
+          <h2 className="text-lg font-semibold text-gray-900">Ventas por categoría</h2>
+          <ul className="mt-4 space-y-2 text-sm">
+            <li className="flex items-center justify-between"><span className="text-gray-600">Entradas</span><span className="font-medium text-gray-900">S/ 520.00</span></li>
+            <li className="flex items-center justify-between"><span className="text-gray-600">Platos principales</span><span className="font-medium text-gray-900">S/ 2,100.00</span></li>
+            <li className="flex items-center justify-between"><span className="text-gray-600">Postres</span><span className="font-medium text-gray-900">S/ 640.00</span></li>
+            <li className="flex items-center justify-between"><span className="text-gray-600">Bebidas</span><span className="font-medium text-gray-900">S/ 820.00</span></li>
+          </ul>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="rounded-2xl border border-gray-200 bg-white p-6">
+          <h2 className="text-lg font-semibold text-gray-900">Actividad reciente</h2>
+          <ul className="mt-4 space-y-3 text-sm">
+            <li className="flex items-center justify-between"><span className="text-gray-600">Creado: Tiramisú</span><span className="text-gray-500">hace 2h</span></li>
+            <li className="flex items-center justify-between"><span className="text-gray-600">Descuento en Lomo Saltado</span><span className="text-gray-500">hace 4h</span></li>
+            <li className="flex items-center justify-between"><span className="text-gray-600">Usuario bloqueado: luis@example.com</span><span className="text-gray-500">ayer</span></li>
+          </ul>
+        </div>
+        <div className="lg:col-span-2 rounded-2xl border border-gray-200 bg-white p-6">
+          <h2 className="text-lg font-semibold text-gray-900">Notas</h2>
+          <ul className="mt-3 space-y-2 text-sm">
+            <li className="flex items-center justify-between"><span className="text-gray-600">Actualizar precios del Menú</span><span className="text-gray-500">hoy</span></li>
+            <li className="flex items-center justify-between"><span className="text-gray-600">Revisar descuentos activos</span><span className="text-gray-500">hoy</span></li>
+            <li className="flex items-center justify-between"><span className="text-gray-600">Ver top productos en Reportes</span><span className="text-gray-500">esta semana</span></li>
+            <li className="flex items-center justify-between"><span className="text-gray-600">Validar usuarios bloqueados</span><span className="text-gray-500">ayer</span></li>
+          </ul>
+        </div>
+      </div>
+
+      {/* Acciones rápidas adicionales (sin duplicar botones del header) */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <Link to="/admin/products" className="rounded-2xl border border-gray-200 bg-white p-5 hover:shadow-sm transition-shadow">
+          <div className="font-medium text-gray-900">Gestionar catálogo</div>
+          <div className="text-sm text-gray-600">Edita precios, estados y descuentos</div>
+        </Link>
+        <Link to="/admin/reports" className="rounded-2xl border border-gray-200 bg-white p-5 hover:shadow-sm transition-shadow">
+          <div className="font-medium text-gray-900">Exportar reportes</div>
+          <div className="text-sm text-gray-600">Revisa y exporta tus reportes</div>
+        </Link>
+        <Link to="/admin/users" className="rounded-2xl border border-gray-200 bg-white p-5 hover:shadow-sm transition-shadow">
+          <div className="font-medium text-gray-900">Invitar usuario</div>
+          <div className="text-sm text-gray-600">Agrega personal y gestiona roles</div>
+        </Link>
+      </div>
+    </section>
   );
 }
 

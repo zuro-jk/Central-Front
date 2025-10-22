@@ -149,7 +149,7 @@ function Signup() {
               title={showPwd ? "Ocultar contraseña" : "Mostrar contraseña"}
             >
               <img
-                src={showPwd ? EYE_OFF : EYE_OPEN} // ojo tachado cuando se muestra el texto
+                src={showPwd ? EYE_OPEN : EYE_OFF} // ojo tachado cuando se muestra el texto
                 width={20}
                 height={20}
                 className="object-contain"
@@ -181,7 +181,7 @@ function Signup() {
               title={showPwd2 ? "Ocultar contraseña" : "Mostrar contraseña"}
             >
               <img
-                src={showPwd2 ? EYE_OFF : EYE_OPEN}
+                src={showPwd2 ? EYE_OPEN : EYE_OFF}
                 width={20}
                 height={20}
                 className="object-contain"

@@ -1,7 +1,11 @@
 import { PrivateLayout, PublicLayout } from "@/components/layouts";
+import AdminLayout from "@/components/layouts/AdminLayout/AdminLayout";
 import AuthLayout from "@/components/layouts/AuthLayout/AuthLayout";
 import NotFound from "@/components/NotFound";
 import DashboardAdmin from "@/features/admin/dashboard/Dashboard";
+import ProductsAdmin from "@/features/admin/products/Products";
+import ReportsAdmin from "@/features/admin/reports/Reports";
+import UsersAdmin from "@/features/admin/users/Users";
 import Login from "@/features/auth/login/Login";
 import Signup from "@/features/auth/signup/Signup";
 import SalesCashier from "@/features/cashier/sales/Sales";
@@ -11,9 +15,9 @@ import Home from "@/features/client/home/Home";
 import Menu from "@/features/client/menu/Menu";
 import Reservations from "@/features/client/reservations/Reservations";
 import ProductsSupplier from "@/features/supplier/products/Products";
+import PageWaiter from "@/features/waiter/pageWaiter";
 import { Route, Routes } from "react-router-dom";
 import PrivateRoute from "./PrivateRoute";
-import PageWaiter from "@/features/waiter/pageWaiter";
 
 export default function AppRoutes() {
   return (
@@ -49,13 +53,32 @@ export default function AppRoutes() {
         />
       </Route>
 
+      <Route element={<AdminLayout />}>
+        <Route
+          path="/admin/products"
+          element={<ProductsAdmin />}
+        />
+      </Route>
+
       <Route element={<PrivateRoute />}>
-        <Route element={<PrivateLayout />}>
-          {/* Admin */}
+        {/* Admin (sin header/footer privado) */}
+        <Route element={<AdminLayout />}>
           <Route
             path="/admin/dashboard"
             element={<DashboardAdmin />}
           />
+          <Route
+            path="/admin/reports"
+            element={<ReportsAdmin />}
+          />
+          <Route
+            path="/admin/users"
+            element={<UsersAdmin />}
+          />
+        </Route>
+
+        {/* Resto de privadas mantienen PrivateLayout */}
+        <Route element={<PrivateLayout />}>
           {/* Chef */}
           <Route
             path="/chef/orders"
@@ -71,13 +94,13 @@ export default function AppRoutes() {
             path="/supplier/products"
             element={<ProductsSupplier />}
           />
-        
+
           {/* Waiter */}
           <Route
             path="/waiter/*"
             element={<PageWaiter />}
           />
-          </Route>
+        </Route>
       </Route>
 
       {/* Ruta fallback */}
