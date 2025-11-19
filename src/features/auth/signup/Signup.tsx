@@ -1,5 +1,5 @@
+import { api } from "@/core/api/api";
 import { useState } from "react";
-import http from "../../../core/api/http";
 
 type RegisterResponse = {
   success?: boolean;
@@ -57,7 +57,7 @@ function Signup() {
     try {
       setLoading(true);
 
-      const { data } = await http.post<RegisterResponse>(
+      const { data } = await api.post<RegisterResponse>(
         REGISTER_ENDPOINT,
         payload,
         {

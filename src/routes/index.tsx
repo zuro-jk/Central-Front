@@ -1,4 +1,5 @@
-import { PrivateLayout, PublicLayout } from "@/components/layouts";
+import { PublicLayout } from "@/components/layouts";
+import AdminLayout from "@/components/layouts/AdminLayout/AdminLayout";
 import AuthLayout from "@/components/layouts/AuthLayout/AuthLayout";
 import NotFound from "@/components/NotFound";
 import DashboardAdmin from "@/features/admin/dashboard/Dashboard";
@@ -14,15 +15,14 @@ import Home from "@/features/client/home/Home";
 import Menu from "@/features/client/menu/Menu";
 import Reservations from "@/features/client/reservations/Reservations";
 import ProductsSupplier from "@/features/supplier/products/Products";
-import { Route, Routes } from "react-router-dom";
-import AdminLayout from "@/components/layouts/AdminLayout/AdminLayout";
-import PrivateRoute from "./PrivateRoute";
 import PageWaiter from "@/features/waiter/pageWaiter";
+import { Route, Routes } from "react-router-dom";
+import PrivateRoute from "./PrivateRoute";
 
 export default function AppRoutes() {
   return (
     <Routes>
-      {/* Rutas públicas */}
+      {/* Públicas */}
       <Route element={<PublicLayout />}>
         <Route
           path="/"
@@ -40,12 +40,9 @@ export default function AppRoutes() {
           path="/contact"
           element={<Contact />}
         />
-        <Route
-          path="/waiter"
-          element={<PageWaiter />}
-        />
       </Route>
 
+      {/* Auth */}
       <Route element={<AuthLayout />}>
         <Route
           path="/auth/login"
@@ -57,30 +54,63 @@ export default function AppRoutes() {
         />
       </Route>
 
-      <Route element={<AdminLayout />}>
-        <Route path="/admin/products" element={<ProductsAdmin />} />
-      </Route>
+      {/* ==================== PRIVADAS ==================== */}
 
-      <Route element={<PrivateRoute />}>
-        {/* Admin (sin header/footer privado) */}
+      {/* ADMIN */}
+      <Route element={<PrivateRoute allowedRoles={["ROLE_ADMIN"]} />}>
         <Route element={<AdminLayout />}>
-          <Route path="/admin/dashboard" element={<DashboardAdmin />} />
-          <Route path="/admin/reports" element={<ReportsAdmin />} />
-          <Route path="/admin/users" element={<UsersAdmin />} />
-        </Route>
-
-        {/* Resto de privadas mantienen PrivateLayout */}
-        <Route element={<PrivateLayout />}>
-          {/* Chef */}
-          <Route path="/chef/orders" element={<OrdersChef />} />
-          {/* Cashier */}
-          <Route path="/cashier/sales" element={<SalesCashier />} />
-          {/* Supplier */}
-          <Route path="/supplier/products" element={<ProductsSupplier />} />
+          <Route
+            path="/admin/dashboard"
+            element={<DashboardAdmin />}
+          />
+          <Route
+            path="/admin/products"
+            element={<ProductsAdmin />}
+          />
+          <Route
+            path="/admin/reports"
+            element={<ReportsAdmin />}
+          />
+          <Route
+            path="/admin/users"
+            element={<UsersAdmin />}
+          />
         </Route>
       </Route>
 
-      {/* Ruta fallback */}
+      {/* CHEF */}
+      <Route element={<PrivateRoute allowedRoles={["ROLE_CHEF"]} />}>
+        <Route
+          path="/chef/orders"
+          element={<OrdersChef />}
+        />
+      </Route>
+
+      {/* CASHIER */}
+      <Route element={<PrivateRoute allowedRoles={["ROLE_CASHIER"]} />}>
+        <Route
+          path="/cashier/sales"
+          element={<SalesCashier />}
+        />
+      </Route>
+
+      {/* SUPPLIER */}
+      <Route element={<PrivateRoute allowedRoles={["ROLE_SUPPLIER"]} />}>
+        <Route
+          path="/supplier/products"
+          element={<ProductsSupplier />}
+        />
+      </Route>
+
+      {/* WAITER */}
+      <Route element={<PrivateRoute allowedRoles={["ROLE_WAITER"]} />}>
+        <Route
+          path="/waiter/*"
+          element={<PageWaiter />}
+        />
+      </Route>
+
+      {/* Fallback */}
       <Route
         path="*"
         element={<NotFound />}
