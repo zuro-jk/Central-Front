@@ -19,21 +19,22 @@ function Contact() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Aquí podrías enviar los datos a tu backend
     setSubmitted(true);
   };
 
   return (
-    <section className="py-28 px-10 bg-neutral-900 text-white min-h-screen">
-      <h2 className="text-5xl font-bold text-center mb-12">
+    <section className="py-24 px-6 bg-gradient-to-b from-[#363333] via-[#222] to-[#1a1a1a] min-h-screen">
+
+      <h2 className="text-5xl font-bold text-center text-white mb-16 drop-shadow-lg">
         Contáctanos
       </h2>
 
       <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12">
+        
         {/* Formulario */}
         <form
           onSubmit={handleSubmit}
-          className="bg-neutral-800 rounded-2xl shadow-xl p-8 flex flex-col gap-6"
+          className="bg-[#2b2b2b] rounded-2xl shadow-xl p-8 flex flex-col gap-6 border border-gray-700"
         >
           <input
             type="text"
@@ -42,8 +43,9 @@ function Contact() {
             onChange={handleChange}
             required
             placeholder="Nombre"
-            className="p-3 rounded-lg border border-neutral-600 bg-neutral-900 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500"
+            className="p-3 rounded-lg bg-[#1f1f1f] text-white border border-gray-600 focus:ring-2 focus:ring-red-600"
           />
+
           <input
             type="email"
             name="email"
@@ -51,8 +53,9 @@ function Contact() {
             onChange={handleChange}
             required
             placeholder="Correo electrónico"
-            className="p-3 rounded-lg border border-neutral-600 bg-neutral-900 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500"
+            className="p-3 rounded-lg bg-[#1f1f1f] text-white border border-gray-600 focus:ring-2 focus:ring-red-600"
           />
+
           <input
             type="text"
             name="subject"
@@ -60,8 +63,9 @@ function Contact() {
             onChange={handleChange}
             required
             placeholder="Asunto"
-            className="p-3 rounded-lg border border-neutral-600 bg-neutral-900 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500"
+            className="p-3 rounded-lg bg-[#1f1f1f] text-white border border-gray-600 focus:ring-2 focus:ring-red-600"
           />
+
           <textarea
             name="message"
             value={formData.message}
@@ -69,130 +73,101 @@ function Contact() {
             required
             placeholder="Mensaje"
             rows={5}
-            className="p-3 rounded-lg border border-neutral-600 bg-neutral-900 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 resize-none"
+            className="p-3 rounded-lg bg-[#1f1f1f] text-white border border-gray-600 focus:ring-2 focus:ring-red-600 resize-none"
           />
+
           <button
             type="submit"
-            className="bg-red-600 text-white font-semibold px-8 py-3 rounded-xl hover:bg-red-700 transition-colors"
+            className="bg-red-600 text-white font-semibold px-8 py-3 rounded-xl hover:bg-red-700 transition"
           >
             Enviar mensaje
           </button>
+
           {submitted && (
-            <p className="text-green-400 font-semibold text-center mt-2">
+            <p className="text-green-500 font-semibold text-center mt-2">
               ¡Gracias! Tu mensaje ha sido enviado.
             </p>
           )}
         </form>
 
-        {/* Información de contacto */}
-        <div className="flex flex-col justify-center gap-6 text-lg">
+        {/* Información */}
+        <div className="flex flex-col justify-center gap-6 text-gray-200 text-lg">
+
           <div className="flex items-center gap-3">
             <span className="text-red-500 text-2xl">📍</span>
-            <p className="text-gray-200">Av. Principal 123, Lima – Perú</p>
-          </div>
-          <div className="flex items-center gap-3">
-            <span className="text-red-500 text-2xl">📞</span>
-            <p className="text-gray-200">+51 987 654 321</p>
-          </div>
-          <div className="flex items-center gap-3">
-            <span className="text-red-500 text-2xl">✉️</span>
-            <p className="text-gray-200">contacto@restaurante.com</p>
-          </div>
-          <div className="flex items-center gap-3">
-            <span className="text-red-500 text-2xl">⏰</span>
-            <p className="text-gray-200">Lunes a Domingo: 12:00pm – 11:00pm</p>
+            <p>Av. Principal 123, Lima – Perú</p>
           </div>
 
-          <div className="flex justify-center gap-6 mt-8">
-            <div className="flex justify-center gap-6 mt-6">
-              <div className="flex items-center gap-6">
-                <a
-                  href="https://wa.me/51987654321"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-green-500 text-4xl hover:scale-110 transition-transform"
-                >
-                  <FaWhatsapp />
-                </a>
-                <a
-                  href="https://www.facebook.com/tuPagina"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-blue-500 text-4xl hover:scale-110 transition-transform"
-                >
-                  <FaFacebook />
-                </a>
-                <a
-                  href="https://www.instagram.com/tuPerfil"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-pink-500 text-4xl hover:scale-110 transition-transform"
-                >
-                  <FaInstagram />
-                </a>
-              </div>
-            </div>
+          <div className="flex items-center gap-3">
+            <span className="text-red-500 text-2xl">📞</span>
+            <p>+51 987 654 321</p>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <span className="text-red-500 text-2xl">✉️</span>
+            <p>contacto@restaurante.com</p>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <span className="text-red-500 text-2xl">⏰</span>
+            <p>Lunes a Domingo: 12:00pm – 11:00pm</p>
+          </div>
+
+          <div className="flex justify-start gap-6 mt-8 text-4xl">
+            <a
+              href="https://wa.me/51987654321"
+              target="_blank"
+              className="text-green-500 hover:scale-110 transition"
+            >
+              <FaWhatsapp />
+            </a>
+            <a
+              href="https://www.facebook.com/"
+              target="_blank"
+              className="text-blue-500 hover:scale-110 transition"
+            >
+              <FaFacebook />
+            </a>
+            <a
+              href="https://www.instagram.com/"
+              target="_blank"
+              className="text-pink-500 hover:scale-110 transition"
+            >
+              <FaInstagram />
+            </a>
           </div>
         </div>
       </div>
 
-      {/* Preguntas frecuentes */}
+      {/* FAQ */}
       <section className="py-20 px-6">
-        <h2 className="text-4xl font-bold text-center text-white mb-12">
+        <h2 className="text-4xl font-bold text-center text-white mb-12 drop-shadow-lg">
           Preguntas Frecuentes
         </h2>
+
         <div className="max-w-3xl mx-auto space-y-6">
-          <details className="p-6 border border-neutral-700 rounded-xl bg-neutral-800 shadow-sm">
-            <summary className="cursor-pointer font-semibold text-lg text-white">
-              ¿Hacen envíos a domicilio?
-            </summary>
-            <p className="mt-3 text-gray-300">
-              Sí, realizamos envíos a toda Lima Metropolitana con un costo
-              adicional según la zona.
-            </p>
-          </details>
-
-          <details className="p-6 border border-neutral-700 rounded-xl bg-neutral-800 shadow-sm">
-            <summary className="cursor-pointer font-semibold text-lg text-white">
-              ¿Cuál es el horario de atención?
-            </summary>
-            <p className="mt-3 text-gray-300">
-              Nuestro horario es de lunes a domingo, desde las 12:00 pm hasta
-              las 11:00 pm.
-            </p>
-          </details>
-
-          <details className="p-6 border border-neutral-700 rounded-xl bg-neutral-800 shadow-sm">
-            <summary className="cursor-pointer font-semibold text-lg text-white">
-              ¿Aceptan pagos con tarjeta?
-            </summary>
-            <p className="mt-3 text-gray-300">
-              Sí, aceptamos todas las tarjetas de débito y crédito, además de
-              pagos por Yape y Plin.
-            </p>
-          </details>
-
-          <details className="p-6 border border-neutral-700 rounded-xl bg-neutral-800 shadow-sm">
-            <summary className="cursor-pointer font-semibold text-lg text-white">
-              ¿Es necesario reservar con anticipación?
-            </summary>
-            <p className="mt-3 text-gray-300">
-              No es obligatorio, pero recomendamos reservar en fines de semana y
-              feriados para asegurar tu mesa.
-            </p>
-          </details>
-
-          <details className="p-6 border border-neutral-700 rounded-xl bg-neutral-800 shadow-sm">
-            <summary className="cursor-pointer font-semibold text-lg text-white">
-              ¿Ofrecen opciones vegetarianas o veganas?
-            </summary>
-            <p className="mt-3 text-gray-300">
-              Sí, contamos con una variedad de platos vegetarianos y veganos en
-              nuestro menú.
-            </p>
-          </details>
+          {[
+            "¿Hacen envíos a domicilio?",
+            "¿Cuál es el horario de atención?",
+            "¿Aceptan pagos con tarjeta?",
+            "¿Es necesario reservar con anticipación?",
+            "¿Ofrecen opciones vegetarianas o veganas?",
+          ].map((q, i) => (
+            <details
+              key={i}
+              className="p-6 bg-[#2a2a2a] border border-gray-700 rounded-xl shadow-md hover:border-red-600 transition"
+            >
+              <summary className="cursor-pointer font-semibold text-lg text-white">
+                {q}
+              </summary>
+              <p className="mt-3 text-gray-300">
+                Información correspondiente a esta pregunta.
+              </p>
+            </details>
+          ))}
         </div>
       </section>
+
     </section>
   );
 }
