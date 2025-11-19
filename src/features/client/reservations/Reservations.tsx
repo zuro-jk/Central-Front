@@ -68,7 +68,7 @@ function Reservations() {
   ];
 
   return (
-    <section className="py-28 px-6 bg-gradient-to-b from-[#202020] via-[#443232] to-[#1a1a1a] min-h-screen relative text-white">
+    <section className="py-28 px-6 bg-gradient-to-b from-[#202020] via-[#1f1515] to-[#1a1a1a] min-h-screen relative text-white">
       <h2 className="text-5xl font-bold text-center mb-6 drop-shadow-lg">
         Reserva tu mesa
       </h2>

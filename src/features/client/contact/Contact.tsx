@@ -23,7 +23,7 @@ function Contact() {
   };
 
   return (
-    <section className="py-24 px-6 bg-gradient-to-b from-[#363333] via-[#222] to-[#1a1a1a] min-h-screen">
+    <section className="py-24 px-6 bg-gradient-to-b from-[#202020] via-[#1f1515] to-[#1a1a1a] min-h-screen">
 
       <h2 className="text-5xl font-bold text-center text-white mb-16 drop-shadow-lg">
         Contáctanos
