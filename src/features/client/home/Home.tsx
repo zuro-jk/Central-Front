@@ -1,9 +1,76 @@
-import { useState } from "react";
+import { useAuthStore } from "@/core/stores/auth.store";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
+
+
+function UserSectionMenu() {
+  const { user, accessToken, logout } = useAuthStore();
+  const isLoggedIn = Boolean(accessToken && user);
+
+  if (isLoggedIn && user) {
+    return (
+      <div className="py-2">
+        <div className="px-4 py-2 text-sm text-gray-300">
+          Hola,{" "}
+          <span className="font-semibold text-white">
+            {user.firstName || user.username}
+          </span>
+        </div>
+
+        {user.roles?.includes("ROLE_ADMIN") && (
+          <Link
+            to="/admin/dashboard"
+            className="block px-4 py-2 text-gray-300 hover:bg-gray-800 hover:text-white transition"
+          >
+            Dashboard
+          </Link>
+        )}
+
+        <button
+          onClick={logout}
+          className="block w-full text-left px-4 py-2 text-gray-300 hover:bg-gray-800 hover:text-white transition"
+        >
+          Cerrar sesión
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="py-2">
+      <Link
+        to="/auth/login"
+        className="block px-4 py-2 text-gray-300 hover:bg-gray-800 hover:text-white transition"
+      >
+        Iniciar Sesión
+      </Link>
+      <Link
+        to="/auth/signup"
+        className="block px-4 py-2 text-gray-300 hover:bg-gray-800 hover:text-white transition"
+      >
+        Registrarse
+      </Link>
+    </div>  
+  );
+}
 
 function Home() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-
+  const menuRef = useRef<HTMLDivElement | null>(null);
+  
+  useEffect(() => {
+      if (!isMenuOpen) return;
+  
+      const handleClickOutside = (e: MouseEvent) => {
+        if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+          setIsMenuOpen(false);
+        }
+      };
+  
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, [isMenuOpen]);
+  
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-amber-50 via-white to-red-50">
       {/* Header con Logo y Menú */}
@@ -19,9 +86,10 @@ function Home() {
           </div>
 
           {/* Menú Hamburguesa */}
-          <div className="relative flex flex-row gap-4">
+          <div className="relative flex flex-row gap-4 " ref={menuRef}>
 
-            <div className="text-white flex gap-2 items-center justify-center">
+            <div className="text-white flex gap-6 items-center justify-center">
+              <Link to="/">Inicio</Link>
               <Link to="/menu">Menu</Link>
               <Link to="/reservations">Reservas</Link>
               <Link to="/contact">Contacto</Link>
@@ -50,23 +118,10 @@ function Home() {
 
             {/* Dropdown Menu */}
             {isMenuOpen && (
-              <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-100">
-                <div className="py-2">
-                  <Link
-                    to="/auth/login"
-                    className="block px-4 py-2 text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors cursor-pointer"
-                  >
-                    Iniciar Sesión
-                  </Link>
-                  <Link
-                    to="/auth/register"
-                    className="block px-4 py-2 text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors cursor-pointer"
-                  >
-                    Registrarse
-                  </Link>
-                </div>
-              </div>
-            )}
+            <div className="absolute right-0 mt-2 w-52 bg-[#2a2a2a] border border-gray-700 rounded-lg shadow-lg">
+              <UserSectionMenu />
+            </div>
+          )}
           </div>
         </div>
       </header>
