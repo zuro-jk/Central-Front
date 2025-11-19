@@ -20,7 +20,6 @@ function Login() {
       if (!token) throw new Error("No se recibió token");
       localStorage.setItem("access_token", token);
       navigate("/admin/dashboard", { replace: true });
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       const msg = err?.response?.data?.message || err?.message || "Error de autenticación";
       setError(String(msg));
