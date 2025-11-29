@@ -1,8 +1,8 @@
 // src/components/Header/PublicHeader.tsx
 
+import { useAuthStore } from "@/core/stores/auth/auth.store";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { useState, useEffect, useRef } from "react";
-import { useAuthStore } from "@/core/stores/auth.store";
 
 function UserSectionMenu() {
   const { user, accessToken, logout } = useAuthStore();
@@ -85,7 +85,10 @@ export default function PublicHeader() {
         </div>
 
         {/* Navegación + menú */}
-        <div className="relative flex flex-row gap-4" ref={menuRef}>
+        <div
+          className="relative flex flex-row gap-4"
+          ref={menuRef}
+        >
           {/* Links visibles siempre */}
           <nav className="flex gap-6 items-center text-gray-200">
             <Link to="/">Inicio</Link>
@@ -96,26 +99,26 @@ export default function PublicHeader() {
 
           {/* Botón hamburguesa SIEMPRE visible */}
           <button
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="flex flex-col justify-center items-center w-10 h-10 space-y-1.5 focus:outline-none"
-            >
-              <div
-                className={`w-6 h-0.5 bg-red-600 transition-all duration-300 ${
-                  isMenuOpen ? "rotate-45 translate-y-2" : ""
-                }`}
-              ></div>
-              <div
-                className={`w-6 h-0.5 bg-red-600 transition-all duration-300 ${
-                  isMenuOpen ? "opacity-0" : ""
-                }`}
-              ></div>
-              <div
-                className={`w-6 h-0.5 bg-red-600 transition-all duration-300 ${
-                  isMenuOpen ? "-rotate-45 -translate-y-2" : ""
-                }`}
-              ></div>
-            </button>
-            
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            className="flex flex-col justify-center items-center w-10 h-10 space-y-1.5 focus:outline-none"
+          >
+            <div
+              className={`w-6 h-0.5 bg-red-600 transition-all duration-300 ${
+                isMenuOpen ? "rotate-45 translate-y-2" : ""
+              }`}
+            ></div>
+            <div
+              className={`w-6 h-0.5 bg-red-600 transition-all duration-300 ${
+                isMenuOpen ? "opacity-0" : ""
+              }`}
+            ></div>
+            <div
+              className={`w-6 h-0.5 bg-red-600 transition-all duration-300 ${
+                isMenuOpen ? "-rotate-45 -translate-y-2" : ""
+              }`}
+            ></div>
+          </button>
+
           {/* Dropdown del menú hamburguesa: aquí va login/register */}
           {isMenuOpen && (
             <div className="absolute right-0 mt-2 w-52 bg-[#2a2a2a] border border-gray-700 rounded-lg shadow-lg">

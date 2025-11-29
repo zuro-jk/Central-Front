@@ -1,18 +1,29 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import Button from "@/components/ui/Button"
-import { Badge } from "@/components/ui/badge"
-import { WaiterDashboard } from "@/components/OnlyWaiter/dashboard"
-import { WaiterOrders } from "@/components/OnlyWaiter/orders"
-import { WaiterTables } from "@/components/OnlyWaiter/tables"
-import { LayoutDashboard, ClipboardList, Users, Bell, User, LogOut } from "lucide-react"
+import { WaiterDashboard } from "@/components/OnlyWaiter/dashboard";
+import { WaiterOrders } from "@/components/OnlyWaiter/orders";
+import { WaiterTables } from "@/components/OnlyWaiter/tables";
+import Button from "@/components/ui/Button";
+import { Badge } from "@/components/ui/badge";
+import { useAuthStore } from "@/core/stores/auth/auth.store";
+import {
+  Bell,
+  ClipboardList,
+  LayoutDashboard,
+  LogOut,
+  User,
+  Users,
+} from "lucide-react";
+import { useState } from "react";
 
-type ActiveSection = "dashboard" | "orders" | "tables"
+type ActiveSection = "dashboard" | "orders" | "tables";
 
 export default function WaiterApp() {
-  const [activeSection, setActiveSection] = useState<ActiveSection>("dashboard")
-  const [notifications] = useState(3)
+  const { logout } = useAuthStore();
+
+  const [activeSection, setActiveSection] =
+    useState<ActiveSection>("dashboard");
+  const [notifications] = useState(3);
 
   const navigationItems = [
     {
@@ -33,9 +44,11 @@ export default function WaiterApp() {
       icon: Users,
       component: WaiterTables,
     },
-  ]
+  ];
 
-  const ActiveComponent = navigationItems.find((item) => item.id === activeSection)?.component || WaiterDashboard
+  const ActiveComponent =
+    navigationItems.find((item) => item.id === activeSection)?.component ||
+    WaiterDashboard;
 
   return (
     <div className="min-h-screen bg-background">
@@ -52,7 +65,11 @@ export default function WaiterApp() {
             </div>
           </div>
           <div className="flex items-center space-x-2">
-            <Button size="sm" variant="outline" className="relative bg-transparent">
+            <Button
+              size="sm"
+              variant="outline"
+              className="relative bg-transparent"
+            >
               <Bell className="w-4 h-4" />
               {notifications > 0 && (
                 <Badge className="absolute -top-2 -right-2 w-5 h-5 p-0 flex items-center justify-center text-xs bg-destructive text-destructive-foreground">
@@ -60,7 +77,10 @@ export default function WaiterApp() {
                 </Badge>
               )}
             </Button>
-            <Button size="sm" variant="outline">
+            <Button
+              size="sm"
+              variant="outline"
+            >
               <LogOut className="w-4 h-4" />
             </Button>
           </div>
@@ -87,8 +107,8 @@ export default function WaiterApp() {
             {/* Navigation */}
             <nav className="flex-1 p-4 space-y-2">
               {navigationItems.map((item) => {
-                const Icon = item.icon
-                const isActive = activeSection === item.id
+                const Icon = item.icon;
+                const isActive = activeSection === item.id;
 
                 return (
                   <Button
@@ -112,13 +132,16 @@ export default function WaiterApp() {
                       </Badge>
                     )}
                   </Button>
-                )
+                );
               })}
             </nav>
 
             {/* Footer Actions */}
             <div className="p-4 border-t border-border space-y-2">
-              <Button variant="outline" className="w-full justify-start bg-transparent">
+              <Button
+                variant="outline"
+                className="w-full justify-start bg-transparent"
+              >
                 <Bell className="w-4 h-4 mr-3" />
                 Notificaciones
                 {notifications > 0 && (
@@ -127,7 +150,11 @@ export default function WaiterApp() {
                   </Badge>
                 )}
               </Button>
-              <Button variant="outline" className="w-full justify-start bg-transparent">
+              <Button
+                variant="outline"
+                className="w-full justify-start bg-transparent"
+                onClick={logout}
+              >
                 <LogOut className="w-4 h-4 mr-3" />
                 Cerrar Sesión
               </Button>
@@ -147,8 +174,8 @@ export default function WaiterApp() {
       <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-card border-t border-border">
         <div className="grid grid-cols-3">
           {navigationItems.map((item) => {
-            const Icon = item.icon
-            const isActive = activeSection === item.id
+            const Icon = item.icon;
+            const isActive = activeSection === item.id;
 
             return (
               <Button
@@ -156,7 +183,11 @@ export default function WaiterApp() {
                 variant="ghost"
                 className={`
                   h-16 rounded-none flex-col space-y-1 relative
-                  ${isActive ? "text-primary bg-primary/10" : "text-muted-foreground"}
+                  ${
+                    isActive
+                      ? "text-primary bg-primary/10"
+                      : "text-muted-foreground"
+                  }
                 `}
                 onClick={() => setActiveSection(item.id)}
               >
@@ -168,7 +199,7 @@ export default function WaiterApp() {
                   </Badge>
                 )}
               </Button>
-            )
+            );
           })}
         </div>
       </div>
@@ -176,5 +207,5 @@ export default function WaiterApp() {
       {/* Mobile Bottom Padding */}
       <div className="lg:hidden h-16"></div>
     </div>
-  )
+  );
 }

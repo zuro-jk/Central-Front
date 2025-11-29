@@ -31,7 +31,7 @@ function Users() {
     }
     (async () => {
       try {
-        const res = await api.get("/api/v1/users/admin", {
+        const res = await api.get("users/admin", {
           headers: { Authorization: `Bearer ${token}` },
         });
         // Esperado: { success, message, data: UserProfileResponse[] }

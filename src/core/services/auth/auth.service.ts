@@ -1,6 +1,6 @@
-import { api } from "../api/api";
-import type { ApiResponse } from "../types/api-response";
-import type { UserResponse } from "../types/user.model";
+import { api } from "@/core/api/api";
+import type { ApiResponse } from "@/core/types/base/api-response";
+import type { UserResponse } from "@/core/types/user/user.model";
 
 export interface LoginRequest {
   usernameOrEmail: string;

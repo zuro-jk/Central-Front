@@ -1,4 +1,5 @@
 import { api } from "@/core/api/api";
+import { Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
 
 type RegisterResponse = {
@@ -8,10 +9,6 @@ type RegisterResponse = {
 };
 
 const REGISTER_ENDPOINT = "/api/v1/auth/register";
-
-// íconos locales
-const EYE_OPEN = "/images/icons/eyes-open.png";
-const EYE_OFF = "/images/icons/eyes-off.png";
 
 function Signup() {
   const [fullName, setFullName] = useState("");
@@ -73,6 +70,7 @@ function Signup() {
       setEmail("");
       setPassword("");
       setConfirm("");
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
       const msg =
         e?.response?.data?.message ||
@@ -88,137 +86,154 @@ function Signup() {
   };
 
   return (
-    <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8">
-      <div className="flex justify-center mb-6">
-        <div className="h-12 w-12 bg-red-600 rounded-full flex items-center justify-center text-white font-bold text-xl">
-          🍴
-        </div>
-      </div>
-
-      <h2 className="text-2xl font-bold text-center text-gray-800 mb-8">
-        Crea tu cuenta en <span className="text-red-600">Foráneos</span>
-      </h2>
-
-      <form
-        className="space-y-5"
-        onSubmit={handleSubmit}
-      >
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Nombre completo
-          </label>
-          <input
-            type="text"
-            placeholder="Juan Pérez"
-            value={fullName}
-            onChange={(e) => setFullName(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:outline-none"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Correo electrónico
-          </label>
-          <input
-            type="email"
-            placeholder="tu@email.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:outline-none"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Contraseña
-          </label>
-          <div className="relative">
-            <input
-              type={showPwd ? "text" : "password"}
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:outline-none pr-10"
-            />
-            <button
-              type="button"
-              onClick={() => setShowPwd((s) => !s)}
-              className="absolute inset-y-0 right-3 flex items-center text-gray-500 hover:text-gray-700"
-              aria-label={showPwd ? "Ocultar contraseña" : "Mostrar contraseña"}
-              title={showPwd ? "Ocultar contraseña" : "Mostrar contraseña"}
-            >
-              <img
-                src={showPwd ? EYE_OPEN : EYE_OFF} // ojo tachado cuando se muestra el texto
-                width={20}
-                height={20}
-                className="object-contain"
-                alt=""
-              />
-            </button>
+    <div className="w-full min-h-screen grid place-items-center bg-neutral-900 text-white p-4">
+      {/* Tarjeta oscura */}
+      <div className="w-full max-w-md bg-neutral-800 rounded-2xl shadow-2xl p-8 border border-neutral-700">
+        {/* Logo */}
+        <div className="flex justify-center mb-6">
+          <div className="h-14 w-14 bg-red-600 rounded-full flex items-center justify-center text-white font-bold text-2xl shadow-lg shadow-red-900/50">
+            🍴
           </div>
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Confirmar contraseña
-          </label>
-          <div className="relative">
+        <h2 className="text-2xl font-bold text-center text-white mb-6">
+          Crea tu cuenta en <span className="text-red-500">Central</span>
+        </h2>
+
+        <form
+          className="space-y-5"
+          onSubmit={handleSubmit}
+        >
+          {/* Nombre Completo */}
+          <div>
+            <label className="block text-sm font-medium text-gray-400 mb-1">
+              Nombre completo
+            </label>
             <input
-              type={showPwd2 ? "text" : "password"}
-              placeholder="••••••••"
-              value={confirm}
-              onChange={(e) => setConfirm(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:outline-none pr-10"
+              type="text"
+              placeholder="Juan Pérez"
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+              className="w-full px-4 py-3 bg-neutral-900 border border-neutral-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-600 transition-all"
             />
-            <button
-              type="button"
-              onClick={() => setShowPwd2((s) => !s)}
-              className="absolute inset-y-0 right-3 flex items-center text-gray-500 hover:text-gray-700"
-              aria-label={
-                showPwd2 ? "Ocultar contraseña" : "Mostrar contraseña"
-              }
-              title={showPwd2 ? "Ocultar contraseña" : "Mostrar contraseña"}
-            >
-              <img
-                src={showPwd2 ? EYE_OPEN : EYE_OFF}
-                width={20}
-                height={20}
-                className="object-contain"
-                alt=""
-              />
-            </button>
           </div>
+
+          {/* Correo */}
+          <div>
+            <label className="block text-sm font-medium text-gray-400 mb-1">
+              Correa electrónico
+            </label>
+            <input
+              type="email"
+              placeholder="tu@email.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full px-4 py-3 bg-neutral-900 border border-neutral-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-600 transition-all"
+            />
+          </div>
+
+          {/* Contraseña */}
+          <div>
+            <label className="block text-sm font-medium text-gray-400 mb-1">
+              Contraseña
+            </label>
+            <div className="relative">
+              <input
+                type={showPwd ? "text" : "password"}
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full px-4 py-3 bg-neutral-900 border border-neutral-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-600 transition-all pr-12"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPwd((s) => !s)}
+                className="absolute inset-y-0 right-3 flex items-center text-gray-500 hover:text-white transition-colors"
+              >
+                {showPwd ? <EyeOff /> : <Eye />}
+              </button>
+            </div>
+          </div>
+
+          {/* Confirmar Contraseña */}
+          <div>
+            <label className="block text-sm font-medium text-gray-400 mb-1">
+              Confirmar contraseña
+            </label>
+            <div className="relative">
+              <input
+                type={showPwd2 ? "text" : "password"}
+                placeholder="••••••••"
+                value={confirm}
+                onChange={(e) => setConfirm(e.target.value)}
+                className="w-full px-4 py-3 bg-neutral-900 border border-neutral-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-600 transition-all pr-12"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPwd2((s) => !s)}
+                className="absolute inset-y-0 right-3 flex items-center text-gray-500 hover:text-white transition-colors"
+              >
+                {showPwd2 ? <EyeOff /> : <Eye />}
+              </button>
+            </div>
+          </div>
+
+          {/* Mensajes de Error / Éxito */}
+          {err && (
+            <div className="p-3 rounded-lg bg-red-900/20 border border-red-800/50 text-red-400 text-sm text-center">
+              {err}
+            </div>
+          )}
+          {ok && (
+            <div className="p-3 rounded-lg bg-green-900/20 border border-green-800/50 text-green-400 text-sm text-center">
+              {ok}
+            </div>
+          )}
+
+          {/* Botón de Registro */}
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-red-600 text-white py-3 rounded-lg font-bold shadow-lg shadow-red-900/30 hover:bg-red-700 hover:shadow-red-900/50 transition-all transform hover:-translate-y-0.5 disabled:opacity-60 disabled:transform-none"
+          >
+            {loading ? (
+              <span className="flex items-center justify-center gap-2">
+                <svg
+                  className="animate-spin h-5 w-5 text-white"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
+                </svg>
+                Registrando...
+              </span>
+            ) : (
+              "Registrarse"
+            )}
+          </button>
+        </form>
+
+        {/* Footer */}
+        <div className="mt-8 text-center text-sm text-gray-400">
+          ¿Ya tienes una cuenta?{" "}
+          <a
+            href="/auth/login"
+            className="text-red-500 font-bold hover:text-red-400 transition-colors hover:underline"
+          >
+            Inicia sesión aquí
+          </a>
         </div>
-
-        {err && (
-          <p className="text-sm text-red-600 bg-red-50 border border-red-100 p-2 rounded">
-            {err}
-          </p>
-        )}
-        {ok && (
-          <p className="text-sm text-green-700 bg-green-50 border border-green-100 p-2 rounded">
-            {ok}
-          </p>
-        )}
-
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full bg-red-600 text-white py-2 rounded-lg font-semibold hover:bg-red-700 transition-colors disabled:opacity-60"
-        >
-          {loading ? "Registrando..." : "Registrarse"}
-        </button>
-      </form>
-
-      <div className="mt-6 text-center text-sm text-gray-500">
-        ¿Ya tienes una cuenta?{" "}
-        <a
-          href="/auth/login"
-          className="text-red-600 font-semibold hover:underline"
-        >
-          Inicia sesión
-        </a>
       </div>
     </div>
   );

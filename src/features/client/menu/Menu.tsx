@@ -1,178 +1,201 @@
+import { useMenuData } from "@/core/hooks/menu/useMenuData";
+import {
+  useCartStore,
+  type CartItemDraft,
+} from "@/core/stores/cart/cart.store";
+import type { ProductResponse } from "@/core/types/products/products.model";
+import { ShoppingBag, Star } from "lucide-react";
 import { useState } from "react";
-import { FaStar } from "react-icons/fa";
+import { toast } from "react-toastify";
 import ProductDrawer from "../Card/ProductDrawer";
-import type { Dish } from "../Types/dish";
 
 function Menu() {
-  const categories = [
-    "Todos",
-    "Entradas",
-    "Platos principales",
-    "Postres",
-    "Bebidas",
-  ];
+  const { categories, products, isLoading } = useMenuData();
+  const [selectedCategoryId, setSelectedCategoryId] = useState<number>(0);
+  const [selectedDish, setSelectedDish] = useState<ProductResponse | null>(
+    null
+  );
 
-  const allDishes: Dish[] = [
-    {
-      name: "Ceviche Peruano",
-      category: "Entradas",
-      description: "Pescado fresco, limón, cebolla, ají.",
-      price: "S/ 30",
-      rating: 5,
-      image:
-        "https://i.pinimg.com/1200x/a3/58/10/a3581087164a115d344af9ff06d0c059.jpg",
-    },
-    {
-      name: "Lomo Saltado",
-      category: "Platos principales",
-      description: "Carne de res, cebolla, tomate, papas fritas.",
-      price: "S/ 28",
-      rating: 4,
-      image:
-        "https://i.pinimg.com/736x/47/af/ef/47afef2090332ab31ae40854669d8356.jpg",
-    },
-    {
-      name: "Tiramisú",
-      category: "Postres",
-      description: "Postre italiano con café y mascarpone.",
-      price: "S/ 18",
-      rating: 5,
-      image:
-        "https://i.pinimg.com/736x/47/af/ef/47afef2090332ab31ae40854669d8356.jpg",
-    },
-    {
-      name: "Limonada",
-      category: "Bebidas",
-      description: "Refrescante bebida natural de limón.",
-      price: "S/ 10",
-      rating: 4,
-      image:
-        "https://i.pinimg.com/736x/93/ee/20/93ee20287f13f86937f425ac053b7a21.jpg",
-    },
-    {
-      name: "Ensalada César",
-      category: "Entradas",
-      description: "Lechuga, pollo, queso parmesano y aderezo César.",
-      price: "S/ 20",
-      rating: 4,
-      image:
-        "https://i.pinimg.com/1200x/04/44/31/044431c8343b5801ff75f4b493fd6a24.jpg",
-    },
-    {
-      name: "Brownie con Helado",
-      category: "Postres",
-      description: "Brownie de chocolate con helado de vainilla.",
-      price: "S/ 16",
-      rating: 5,
-      image:
-        "https://i.pinimg.com/736x/0f/ce/b8/0fceb803cfa5ac4ddee46ccd9cf2874b.jpg",
-    },
-    {
-      name: "Jugo de Mango",
-      category: "Bebidas",
-      description: "Natural y fresco.",
-      price: "S/ 12",
-      rating: 4,
-      image:
-        "https://i.pinimg.com/736x/a2/49/d8/a249d8ff5080446d3621783856e9181f.jpg",
-    },
-  ];
+  const addItemToCart = useCartStore((state) => state.addItem);
+  const toggleCart = useCartStore((state) => state.toggleCart);
+  const totalItems = useCartStore((state) => state.getTotalItems());
+  const totalPrice = useCartStore((state) => state.getTotalPrice());
 
-  const [selectedCategory, setSelectedCategory] = useState<string>("Todos");
-  const [selectedDish, setSelectedDish] = useState<Dish | null>(null);
+  const filteredProducts =
+    selectedCategoryId === 0
+      ? products?.data
+      : products?.data.filter((p) => p.categoryId === selectedCategoryId);
 
-  const filteredDishes =
-    selectedCategory === "Todos"
-      ? allDishes
-      : allDishes.filter((d) => d.category === selectedCategory);
-
-  const handleOpen = (dish: Dish) => setSelectedDish(dish);
+  const handleOpen = (dish: ProductResponse) => setSelectedDish(dish);
   const handleClose = () => setSelectedDish(null);
 
-  const drawer = selectedDish ? (
-    <ProductDrawer
-      dish={selectedDish}
-      isOpen={true}
-      onClose={handleClose}
-    />
-  ) : null;
+  const handleAddToCartFromDrawer = (item: CartItemDraft) => {
+    addItemToCart(item);
+    toast.success(`Agregado: ${item.quantity}x ${item.product.name}`, {
+      position: "bottom-center",
+      autoClose: 2000,
+      theme: "dark",
+    });
+  };
 
   return (
-    <section className="py-28 px-10 bg-neutral-900 text-white min-h-screen">
+    <section className="pt-32 pb-20 px-4 md:px-10 bg-neutral-900 text-white min-h-screen">
+      {totalItems > 0 && (
+        <button
+          onClick={toggleCart}
+          className="fixed bottom-6 right-6 z-50 bg-red-600 text-white p-4 rounded-full shadow-2xl shadow-red-900/50 hover:bg-red-700 hover:scale-105 transition-all duration-300 flex items-center gap-3"
+        >
+          <div className="relative">
+            <ShoppingBag size={24} />
+            <span className="absolute -top-2 -right-2 bg-white text-red-600 text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full animate-pulse">
+              {totalItems}
+            </span>
+          </div>
+          <span className="font-bold pr-1">S/ {totalPrice.toFixed(2)}</span>
+        </button>
+      )}
 
-      {/* TÍTULO */}
-      <h2 className="text-5xl font-bold text-center mb-12">
-        Nuestro Menú
-      </h2>
-
-      <p className="text-center text-gray-300 max-w-4xl mx-auto mb-12 text-lg">
-        Explora nuestras deliciosas opciones y encuentra tu plato favorito fácilmente.
-      </p>
-
-      {/* CATEGORÍAS */}
-      <div className="flex justify-center gap-4 mb-14 flex-wrap">
-        {categories.map((cat) => (
-          <button
-            key={cat}
-            className={`px-6 py-2 rounded-full font-semibold transition-colors ${
-              selectedCategory === cat
-                ? "bg-red-600 text-white"
-                : "bg-neutral-800 text-gray-300 border border-neutral-600 hover:bg-red-600 hover:text-white"
-            }`}
-            onClick={() => setSelectedCategory(cat)}
-          >
-            {cat}
-          </button>
-        ))}
+      <div className="text-center mb-16 animate-fade-in-up">
+        <h2 className="text-5xl md:text-6xl font-bold mb-6 text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-400">
+          Nuestro Menú
+        </h2>
+        <p className="text-gray-400 max-w-2xl mx-auto text-lg md:text-xl font-light">
+          Una selección curada de sabores que rinden homenaje a nuestra
+          biodiversidad.
+        </p>
       </div>
 
-      {/* GRID DE PLATOS */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-10 max-w-7xl mx-auto">
-        {filteredDishes.map((dish) => (
-          <div
-            key={dish.name}
-            className="bg-neutral-800 rounded-2xl shadow-xl overflow-hidden hover:shadow-2xl transition-all duration-300 hover:scale-105 flex flex-col"
-          >
-            <img
-              src={dish.image}
-              alt={dish.name}
-              className="w-full h-56 object-cover"
-            />
-            <div className="p-6 flex flex-col flex-1">
-              <h3 className="text-2xl font-bold text-red-500 mb-2">
-                {dish.name}
-              </h3>
-              <p className="text-gray-300 mb-4 flex-1">{dish.description}</p>
+      <div className="flex justify-center gap-3 mb-16 flex-wrap sticky top-24 z-30 py-4 bg-neutral-900/80 backdrop-blur-md transition-all">
+        <button
+          onClick={() => setSelectedCategoryId(0)}
+          className={`px-6 py-2.5 rounded-full font-semibold transition-all duration-300 text-sm md:text-base border ${
+            selectedCategoryId === 0
+              ? "bg-red-600 border-red-600 text-white shadow-[0_0_20px_rgba(220,38,38,0.4)] transform scale-105"
+              : "bg-neutral-800 border-neutral-700 text-gray-400 hover:border-gray-500 hover:text-white"
+          }`}
+        >
+          Todos
+        </button>
 
-              <div className="flex items-center justify-between">
-                <span className="text-xl font-semibold text-amber-400">
-                  {dish.price}
-                </span>
+        {!isLoading &&
+          categories?.data?.map((cat) => (
+            <button
+              key={cat.id}
+              onClick={() => setSelectedCategoryId(cat.id)}
+              className={`px-6 py-2.5 rounded-full font-semibold transition-all duration-300 text-sm md:text-base border ${
+                selectedCategoryId === cat.id
+                  ? "bg-red-600 border-red-600 text-white shadow-[0_0_20px_rgba(220,38,38,0.4)] transform scale-105"
+                  : "bg-neutral-800 border-neutral-700 text-gray-400 hover:border-gray-500 hover:text-white"
+              }`}
+            >
+              {cat.name}
+            </button>
+          ))}
 
-                <div className="flex items-center">
-                  {Array.from({ length: 5 }, (_, i) => (
-                    <FaStar
-                      key={i}
-                      className={`${
-                        i < dish.rating ? "text-yellow-400" : "text-gray-600"
-                      } mr-1`}
-                    />
-                  ))}
+        {isLoading &&
+          [1, 2, 3, 4].map((i) => (
+            <div
+              key={i}
+              className="h-10 w-24 bg-neutral-800 rounded-full animate-pulse"
+            ></div>
+          ))}
+      </div>
+
+      <div className="max-w-7xl mx-auto min-h-[500px]">
+        {isLoading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+            {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+              <div
+                key={i}
+                className="bg-neutral-800 rounded-2xl h-[400px] animate-pulse"
+              ></div>
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+            {filteredProducts?.length === 0 && (
+              <div className="col-span-full flex flex-col items-center justify-center py-20 text-gray-500">
+                <p className="text-2xl font-light">
+                  No hay platos disponibles en esta categoría.
+                </p>
+              </div>
+            )}
+
+            {filteredProducts?.map((dish) => (
+              <div
+                key={dish.id}
+                className="group relative bg-neutral-800 rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300 flex flex-col border border-neutral-700 hover:border-red-500/30 hover:-translate-y-2"
+              >
+                <div
+                  className="relative h-60 overflow-hidden cursor-pointer"
+                  onClick={() => handleOpen(dish)}
+                >
+                  <img
+                    src={
+                      dish.imageUrl ||
+                      "https://via.placeholder.com/400x300?text=Sin+Imagen"
+                    }
+                    alt={dish.name}
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                    onError={(e) => {
+                      e.currentTarget.src =
+                        "https://via.placeholder.com/400x300?text=Error";
+                    }}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-neutral-900 via-transparent to-transparent opacity-60 group-hover:opacity-40 transition-opacity"></div>
+
+                  <span className="absolute top-3 right-3 bg-black/60 backdrop-blur text-xs font-bold text-white px-2 py-1 rounded border border-white/10">
+                    {dish.categoryName}
+                  </span>
+                </div>
+
+                {/* Contenido */}
+                <div className="p-6 flex flex-col flex-1">
+                  <div className="flex justify-between items-start mb-2">
+                    <h3
+                      className="text-xl font-bold text-white group-hover:text-red-500 transition-colors cursor-pointer"
+                      onClick={() => handleOpen(dish)}
+                    >
+                      {dish.name}
+                    </h3>
+                  </div>
+
+                  <p className="text-gray-400 text-sm line-clamp-2 mb-4 flex-1">
+                    {dish.description}
+                  </p>
+
+                  <div className="flex items-center justify-between border-t border-neutral-700 pt-4 mt-auto">
+                    <span className="text-2xl font-bold text-amber-500">
+                      S/ {dish.price?.toFixed(2)}
+                    </span>
+
+                    <div className="flex items-center gap-1">
+                      <Star className="text-yellow-500 text-sm" />
+                      <span className="text-sm font-medium text-gray-300">
+                        {dish.rating || 5.0}
+                      </span>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => handleOpen(dish)}
+                    className="mt-4 w-full py-2 rounded-lg bg-neutral-700 text-white font-semibold hover:bg-red-600 hover:text-white transition-all text-sm uppercase tracking-wide"
+                  >
+                    Ver Detalles
+                  </button>
                 </div>
               </div>
-
-              <button
-                className="mt-4 bg-red-600 text-white py-2 rounded-lg hover:bg-red-700 transition-colors"
-                onClick={() => handleOpen(dish)}
-              >
-                Agregar
-              </button>
-            </div>
+            ))}
           </div>
-        ))}
+        )}
       </div>
 
-      {drawer}
+      <ProductDrawer
+        dish={selectedDish}
+        isOpen={Boolean(selectedDish)}
+        onClose={handleClose}
+        onAddToCart={handleAddToCartFromDrawer}
+      />
     </section>
   );
 }

@@ -1,11 +1,14 @@
 import { useMutation } from "@tanstack/react-query";
 import type { AxiosError } from "axios";
 import { useNavigate } from "react-router-dom";
-import { roleDefaultRoutes } from "../constants/role-routes";
-import { authService, type LoginResponse } from "../services/auth.service";
-import { useAuthStore } from "../stores/auth.store";
-import type { ApiError } from "../types/api-response";
-import type { LoginRequest } from "../types/user.model";
+import { roleDefaultRoutes } from "../../constants/role-routes";
+import {
+  authService,
+  type LoginResponse,
+} from "../../services/auth/auth.service";
+import { useAuthStore } from "../../stores/auth/auth.store";
+import type { ApiError } from "../../types/base/api-response";
+import type { LoginRequest } from "../../types/user/user.model";
 
 export function useLoginMutation() {
   const navigate = useNavigate();

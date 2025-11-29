@@ -81,8 +81,8 @@ function Products() {
     (async () => {
       try {
         const [catRes, ingRes] = await Promise.allSettled([
-          api.get("/api/v1/categories"),
-          api.get("/api/v1/ingredients"),
+          api.get("categories"),
+          api.get("ingredients"),
         ]);
         if (mounted && catRes.status === "fulfilled") {
           const cats = (catRes.value.data?.data || []) as Array<any>;

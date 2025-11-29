@@ -1,4 +1,4 @@
-import { useAuthStore } from "@/core/stores/auth.store";
+import { useAuthStore } from "@/core/stores/auth/auth.store";
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 
 interface PrivateRouteProps {

@@ -14,7 +14,7 @@ function Reports() {
       try {
         const token = localStorage.getItem("access_token");
         const res = await api.get(
-          "/api/v1/orders",
+          "orders",
           token ? { headers: { Authorization: `Bearer ${token}` } } : undefined
         );
         const list = (res.data?.data || []) as Array<{
