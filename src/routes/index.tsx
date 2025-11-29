@@ -10,6 +10,7 @@ import Login from "@/features/auth/login/Login";
 import Signup from "@/features/auth/signup/Signup";
 import SalesCashier from "@/features/cashier/sales/Sales";
 import OrdersChef from "@/features/chef/orders/Orders";
+import CheckoutPage from "@/features/client/checkout/Checkout";
 import Contact from "@/features/client/contact/Contact";
 import Home from "@/features/client/home/Home";
 import Menu from "@/features/client/menu/Menu";
@@ -39,6 +40,11 @@ export default function AppRoutes() {
         <Route
           path="/contact"
           element={<Contact />}
+        />
+
+        <Route
+          path="/checkout"
+          element={<CheckoutPage />}
         />
       </Route>
 

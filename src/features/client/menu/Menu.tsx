@@ -7,9 +7,11 @@ import type { ProductResponse } from "@/core/types/products/products.model";
 import { ShoppingBag, Star } from "lucide-react";
 import { useState } from "react";
 import { toast } from "react-toastify";
-import ProductDrawer from "../Card/ProductDrawer";
+import ProductDrawer from "./components/product-drawer/ProductDrawer";
+import { useNavigate } from "react-router-dom";
 
 function Menu() {
+  const navigate = useNavigate();
   const { categories, products, isLoading } = useMenuData();
   const [selectedCategoryId, setSelectedCategoryId] = useState<number>(0);
   const [selectedDish, setSelectedDish] = useState<ProductResponse | null>(
@@ -17,7 +19,6 @@ function Menu() {
   );
 
   const addItemToCart = useCartStore((state) => state.addItem);
-  const toggleCart = useCartStore((state) => state.toggleCart);
   const totalItems = useCartStore((state) => state.getTotalItems());
   const totalPrice = useCartStore((state) => state.getTotalPrice());
 
@@ -42,7 +43,7 @@ function Menu() {
     <section className="pt-32 pb-20 px-4 md:px-10 bg-neutral-900 text-white min-h-screen">
       {totalItems > 0 && (
         <button
-          onClick={toggleCart}
+          onClick={() => navigate("/checkout")}
           className="fixed bottom-6 right-6 z-50 bg-red-600 text-white p-4 rounded-full shadow-2xl shadow-red-900/50 hover:bg-red-700 hover:scale-105 transition-all duration-300 flex items-center gap-3"
         >
           <div className="relative">
