@@ -1,66 +1,132 @@
-import { Link } from "react-router-dom";
-import Button from "../ui/Button";
+// src/components/Header/PublicHeader.tsx
 
-function PublicHeader() {
-  return (
-    <header className="bg-gradient-to-r from-red-600 via-orange-500 to-yellow-500 text-white shadow-md">
-      <div className="flex justify-between items-center h-16 container mx-auto">
-        <div className="flex items-center space-x-2">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-9 w-9 text-white"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M12 4v16m8-8H4"
-            />
-          </svg>
-          <span className="text-xl font-bold tracking-wide">Foráneos</span>
+import { useAuthStore } from "@/core/stores/auth/auth.store";
+import { useEffect, useRef, useState } from "react";
+import { Link } from "react-router-dom";
+
+function UserSectionMenu() {
+  const { user, accessToken, logout } = useAuthStore();
+  const isLoggedIn = Boolean(accessToken && user);
+
+  if (isLoggedIn && user) {
+    return (
+      <div className="py-2">
+        <div className="px-4 py-2 text-sm text-gray-300">
+          Hola,{" "}
+          <span className="font-semibold text-white">
+            {user.firstName || user.username}
+          </span>
         </div>
 
-        <nav className="hidden md:flex space-x-10 font-medium gap-4">
-          <a
-            href="/"
-            className="hover:text-yellow-100 transition"
+        {user.roles?.includes("ROLE_ADMIN") && (
+          <Link
+            to="/admin/dashboard"
+            className="block px-4 py-2 text-gray-300 hover:bg-gray-800 hover:text-white transition"
           >
-            Inicio
-          </a>
-          <a
-            href="/menu"
-            className="hover:text-yellow-100 transition"
-          >
-            Menú
-          </a>
-          <a
-            href="/reservations"
-            className="hover:text-yellow-100 transition"
-          >
-            Reservas
-          </a>
-          <a
-            href="/contact"
-            className="hover:text-yellow-100 transition"
-          >
-            Contacto
-          </a>
-        </nav>
+            Dashboard
+          </Link>
+        )}
 
-        <div className="flex items-center space-x-3 p-4">
-          <Link to="/auth/login">
-            <Button>Iniciar Sesion</Button>
-          </Link>
-          <Link to="/auth/signup">
-            <Button>Registrarse</Button>
-          </Link>
+        <button
+          onClick={logout}
+          className="block w-full text-left px-4 py-2 text-gray-300 hover:bg-gray-800 hover:text-white transition"
+        >
+          Cerrar sesión
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="py-2">
+      <Link
+        to="/auth/login"
+        className="block px-4 py-2 text-gray-300 hover:bg-gray-800 hover:text-white transition"
+      >
+        Iniciar Sesión
+      </Link>
+      <Link
+        to="/auth/signup"
+        className="block px-4 py-2 text-gray-300 hover:bg-gray-800 hover:text-white transition"
+      >
+        Registrarse
+      </Link>
+    </div>
+  );
+}
+
+export default function PublicHeader() {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!isMenuOpen) return;
+
+    const handleClickOutside = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setIsMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [isMenuOpen]);
+
+  return (
+    <header className="fixed top-0 left-0 right-0 z-50 bg-[#202020] text-white shadow-md">
+      <div className="flex justify-between items-center px-6 py-4">
+        {/* Logo */}
+        <div className="flex items-center">
+          <img
+            src="/images/inicio/centralLogo.png"
+            alt="Foraneos Logo"
+            className="w-50 h-15 object-contain"
+          />
+        </div>
+
+        {/* Navegación + menú */}
+        <div
+          className="relative flex flex-row gap-4"
+          ref={menuRef}
+        >
+          {/* Links visibles siempre */}
+          <nav className="flex gap-6 items-center text-gray-200">
+            <Link to="/">Inicio</Link>
+            <Link to="/menu">Menu</Link>
+            <Link to="/reservations">Reservas</Link>
+            <Link to="/contact">Contacto</Link>
+          </nav>
+
+          {/* Botón hamburguesa SIEMPRE visible */}
+          <button
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            className="flex flex-col justify-center items-center w-10 h-10 space-y-1.5 focus:outline-none"
+          >
+            <div
+              className={`w-6 h-0.5 bg-red-600 transition-all duration-300 ${
+                isMenuOpen ? "rotate-45 translate-y-2" : ""
+              }`}
+            ></div>
+            <div
+              className={`w-6 h-0.5 bg-red-600 transition-all duration-300 ${
+                isMenuOpen ? "opacity-0" : ""
+              }`}
+            ></div>
+            <div
+              className={`w-6 h-0.5 bg-red-600 transition-all duration-300 ${
+                isMenuOpen ? "-rotate-45 -translate-y-2" : ""
+              }`}
+            ></div>
+          </button>
+
+          {/* Dropdown del menú hamburguesa: aquí va login/register */}
+          {isMenuOpen && (
+            <div className="absolute right-0 mt-2 w-52 bg-[#2a2a2a] border border-gray-700 rounded-lg shadow-lg">
+              <UserSectionMenu />
+            </div>
+          )}
         </div>
       </div>
     </header>
   );
 }
-
-export default PublicHeader;
