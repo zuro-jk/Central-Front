@@ -9,9 +9,90 @@ const containerStyle = {
 };
 
 const defaultCenter = {
-  lat: -12.046374,
-  lng: -77.042793,
+  lat: -14.0639,
+  lng: -75.729,
 };
+
+const darkMapStyles = [
+  { elementType: "geometry", stylers: [{ color: "#242f3e" }] },
+  { elementType: "labels.text.stroke", stylers: [{ color: "#242f3e" }] },
+  { elementType: "labels.text.fill", stylers: [{ color: "#746855" }] },
+  {
+    featureType: "administrative.locality",
+    elementType: "labels.text.fill",
+    stylers: [{ color: "#d59563" }],
+  },
+  {
+    featureType: "poi",
+    elementType: "labels.text.fill",
+    stylers: [{ color: "#d59563" }],
+  },
+  {
+    featureType: "poi.park",
+    elementType: "geometry",
+    stylers: [{ color: "#263c3f" }],
+  },
+  {
+    featureType: "poi.park",
+    elementType: "labels.text.fill",
+    stylers: [{ color: "#6b9a76" }],
+  },
+  {
+    featureType: "road",
+    elementType: "geometry",
+    stylers: [{ color: "#38414e" }],
+  },
+  {
+    featureType: "road",
+    elementType: "geometry.stroke",
+    stylers: [{ color: "#212a37" }],
+  },
+  {
+    featureType: "road",
+    elementType: "labels.text.fill",
+    stylers: [{ color: "#9ca5b3" }],
+  },
+  {
+    featureType: "road.highway",
+    elementType: "geometry",
+    stylers: [{ color: "#746855" }],
+  },
+  {
+    featureType: "road.highway",
+    elementType: "geometry.stroke",
+    stylers: [{ color: "#1f2835" }],
+  },
+  {
+    featureType: "road.highway",
+    elementType: "labels.text.fill",
+    stylers: [{ color: "#f3d19c" }],
+  },
+  {
+    featureType: "transit",
+    elementType: "geometry",
+    stylers: [{ color: "#2f3948" }],
+  },
+  {
+    featureType: "transit.station",
+    elementType: "labels.text.fill",
+    stylers: [{ color: "#d59563" }],
+  },
+  {
+    featureType: "water",
+    elementType: "geometry",
+    stylers: [{ color: "#17263c" }],
+  },
+  {
+    featureType: "water",
+    elementType: "labels.text.fill",
+    stylers: [{ color: "#515c6d" }],
+  },
+  {
+    featureType: "water",
+    elementType: "labels.text.stroke",
+    stylers: [{ color: "#17263c" }],
+  },
+];
 
 interface LocationPickerProps {
   onLocationSelect: (address: string, lat: number, lng: number) => void;
@@ -45,7 +126,9 @@ export default function LocationPicker({
             lng: position.coords.longitude,
           });
         },
-        () => console.log("No se pudo obtener la ubicación")
+        () => {
+          console.log("No se pudo obtener la ubicación, usando default (Ica)");
+        }
       );
     }
   }, [initialLat, initialLng]);
@@ -60,7 +143,9 @@ export default function LocationPicker({
 
   const fetchAddress = async (lat: number, lng: number) => {
     setLoadingAddress(true);
-    const geocoder = new google.maps.Geocoder();
+    if (!window.google || !window.google.maps) return;
+
+    const geocoder = new window.google.maps.Geocoder();
 
     geocoder.geocode({ location: { lat, lng } }, (results, status) => {
       if (status === "OK" && results && results[0]) {
@@ -69,7 +154,7 @@ export default function LocationPicker({
         onLocationSelect(formattedAddress, lat, lng);
       } else {
         console.error("Geocoder falló: " + status);
-        setAddress("Ubicación seleccionada (Dirección no encontrada)");
+        setAddress("Ubicación seleccionada");
         onLocationSelect("Ubicación seleccionada en mapa", lat, lng);
       }
       setLoadingAddress(false);
@@ -116,7 +201,7 @@ export default function LocationPicker({
             </p>
           ) : (
             <p className="text-sm text-white truncate">
-              {address || "Toca el mapa para seleccionar"}
+              {address || "Arrastra el pin o toca el mapa"}
             </p>
           )}
         </div>
@@ -130,19 +215,11 @@ export default function LocationPicker({
         onUnmount={onUnmount}
         onClick={handleMapClick}
         options={{
-          styles: [
-            { elementType: "geometry", stylers: [{ color: "#242f3e" }] },
-            {
-              elementType: "labels.text.stroke",
-              stylers: [{ color: "#242f3e" }],
-            },
-            {
-              elementType: "labels.text.fill",
-              stylers: [{ color: "#746855" }],
-            },
-          ],
+          styles: darkMapStyles,
           streetViewControl: false,
           mapTypeControl: false,
+          fullscreenControl: false,
+          zoomControl: true,
         }}
       >
         <MarkerF

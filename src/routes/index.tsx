@@ -14,6 +14,8 @@ import CheckoutPage from "@/features/client/checkout/Checkout";
 import Contact from "@/features/client/contact/Contact";
 import Home from "@/features/client/home/Home";
 import Menu from "@/features/client/menu/Menu";
+import PaymentSuccess from "@/features/client/payment-success/PaymentSuccess";
+import PaymentValidate from "@/features/client/payment-success/PaymentValidate";
 import Reservations from "@/features/client/reservations/Reservations";
 import ProductsSupplier from "@/features/supplier/products/Products";
 import PageWaiter from "@/features/waiter/pageWaiter";
@@ -23,7 +25,7 @@ import PrivateRoute from "./PrivateRoute";
 export default function AppRoutes() {
   return (
     <Routes>
-      {/* Públicas */}
+      {/* ==================== PÚBLICAS ==================== */}
       <Route element={<PublicLayout />}>
         <Route
           path="/"
@@ -42,9 +44,20 @@ export default function AppRoutes() {
           element={<Contact />}
         />
 
+        {/* AHORA ES PÚBLICA: El componente maneja la restricción interna */}
         <Route
           path="/checkout"
           element={<CheckoutPage />}
+        />
+
+        <Route
+          path="/payment/validate"
+          element={<PaymentValidate />}
+        />
+
+        <Route
+          path="/payment/success"
+          element={<PaymentSuccess />}
         />
       </Route>
 

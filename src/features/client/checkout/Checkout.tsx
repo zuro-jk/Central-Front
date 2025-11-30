@@ -1,52 +1,68 @@
-import LocationPicker from "@/components/Maps/LocationPicker";
+import { useNiubizScript } from "@/core/hooks/order/useNiubizScript";
+import { useCreateOrderMutation } from "@/core/hooks/order/useOrder.hook";
+import { paymentService } from "@/core/services/payment/payment.service";
 import { useAuthStore } from "@/core/stores/auth/auth.store";
 import { useCartStore } from "@/core/stores/cart/cart.store";
-import {
-  Banknote,
-  ChevronLeft,
-  CreditCard,
-  Map,
-  MapPin,
-  ShoppingBag,
-  Smartphone,
-  Trash2,
-  X,
-} from "lucide-react";
+import type { OrderRequest } from "@/core/types/order/order.model";
+import { ChevronLeft } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import DeliveryForm from "./components/DeliveryForm";
+import EmptyCartView from "./components/EmptyCartView";
+import LoginPrompt from "./components/LoginPrompt";
+import MapModal from "./components/MapModal";
+import OrderSummary from "./components/OrderSummary";
+import PaymentSelector from "./components/PaymentSelector";
 
 export default function CheckoutPage() {
   const navigate = useNavigate();
 
+  // Stores Globales
   const { items, getTotalPrice, removeItem, clearCart } = useCartStore();
   const { user } = useAuthStore();
 
+  // Hooks Personalizados
+  const { isScriptLoaded, scriptError } = useNiubizScript();
+  const createOrderMutation = useCreateOrderMutation();
+  const { isPending: isCreatingOrder } = createOrderMutation;
+
+  // --- ESTADOS DEL FORMULARIO ---
   const [paymentMethod, setPaymentMethod] = useState<"card" | "cash" | "yape">(
     "card"
   );
 
+  // Datos de Entrega
   const [address, setAddress] = useState("");
   const [coordinates, setCoordinates] = useState<{
     lat: number;
     lng: number;
   } | null>(null);
-  const [phone, setPhone] = useState("");
   const [references, setReferences] = useState("");
 
-  const [isLoading, setIsLoading] = useState(false);
+  // Datos de Contacto e Identidad
+  const [phone, setPhone] = useState("");
+  const [docType, setDocType] = useState("DNI");
+  const [docNumber, setDocNumber] = useState("");
+
+  // Estados de Interfaz
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [isMapOpen, setIsMapOpen] = useState(false);
 
+  // Cálculos de Totales
   const subtotal = getTotalPrice();
   const deliveryFee = 5.0;
   const total = subtotal + deliveryFee;
+  const isLoading = isCreatingOrder || isProcessingPayment;
 
+  // Debug de usuario
   useEffect(() => {
     if (user) {
-      console.log("Usuario detectado en checkout:", user);
+      console.log("Checkout iniciado por:", user.username);
     }
   }, [user]);
 
+  // --- HANDLERS DEL MAPA ---
   const handleLocationSelect = (
     selectedAddress: string,
     lat: number,
@@ -58,70 +74,191 @@ export default function CheckoutPage() {
 
   const handleConfirmMap = () => {
     if (!coordinates) {
-      toast.error("Selecciona una ubicación en el mapa");
+      toast.error("Por favor selecciona una ubicación en el mapa");
       return;
     }
     setIsMapOpen(false);
   };
 
-  const handlePlaceOrder = async () => {
+  // --- PROCESO PRINCIPAL DE ORDEN ---
+  const handleProcessOrder = () => {
+    // 1. Validaciones de Campos
     if (!address.trim() || !coordinates) {
-      toast.error("Por favor selecciona tu dirección en el mapa");
-      return;
+      return toast.error("Selecciona tu dirección de entrega en el mapa");
     }
-    if (!phone.trim()) {
-      toast.error("Ingresa un teléfono de contacto");
-      return;
+    if (!phone.trim() || phone.length < 9) {
+      return toast.error("Ingresa un teléfono válido de 9 dígitos");
+    }
+    if (!docNumber.trim()) {
+      return toast.error("El número de documento es obligatorio");
+    }
+    if (docType === "DNI" && docNumber.length !== 8) {
+      return toast.error("El DNI debe tener 8 dígitos");
+    }
+    if (docType === "RUC" && docNumber.length !== 11) {
+      return toast.error("El RUC debe tener 11 dígitos");
     }
 
-    setIsLoading(true);
+    // 2. Validación de Niubiz (Si es tarjeta)
+    if (paymentMethod === "card") {
+      if (scriptError) {
+        return toast.error(
+          "Error cargando la pasarela de pagos. Por favor desactiva AdBlock y recarga."
+        );
+      }
+      if (!isScriptLoaded) {
+        return toast.info(
+          "Cargando sistema de seguridad de pagos, intenta en unos segundos..."
+        );
+      }
+    }
 
-    setTimeout(() => {
-      const orderData = {
-        userId: user?.id || null,
-        items,
-        total,
-        deliveryData: {
-          address,
-          coordinates,
-          phone,
-          references,
+    // 3. Construir Payload para la Orden
+    const orderPayload: OrderRequest = {
+      customerId: user?.id || null,
+      statusId: 1, // PENDING
+      typeId: 3, // DELIVERY
+      details: items.map((item) => ({
+        productId: item.product.id,
+        quantity: item.quantity,
+      })),
+      deliveryAddress: {
+        street: address,
+        reference: references,
+        city: "Ica",
+        province: "Ica",
+        zipCode: "11000",
+        latitude: coordinates.lat,
+        longitude: coordinates.lng,
+        instructions: items[0]?.notes || "",
+      },
+      // Si es tarjeta, NO enviamos el pago en la creación (se hace en el flujo de Niubiz después)
+      payments:
+        paymentMethod !== "card"
+          ? [
+              {
+                paymentMethodId: paymentMethod === "cash" ? 1 : 3,
+                amount: total,
+                isOnline: false,
+                status: "PENDING",
+              },
+            ]
+          : [],
+    };
+
+    // 4. Ejecutar Mutación de Creación de Orden
+    createOrderMutation.mutate(
+      { data: orderPayload, lang: "es" },
+      {
+        onSuccess: (response) => {
+          const orderId = response.data.id;
+
+          if (paymentMethod === "card") {
+            startNiubizFlow(orderId);
+          } else {
+            finishSuccess();
+          }
         },
-        paymentMethod,
-      };
-
-      console.log("Orden Enviada:", orderData);
-      setIsLoading(false);
-      clearCart();
-      toast.success("¡Orden creada exitosamente!");
-      navigate("/menu");
-    }, 2000);
+        onError: (error: any) => {
+          console.error(error);
+          toast.error(
+            error.response?.data?.message || "Error al crear la orden"
+          );
+        },
+      }
+    );
   };
 
-  if (items.length === 0) {
-    return (
-      <div className="min-h-screen bg-neutral-900 text-white flex flex-col items-center justify-center p-4">
-        <div className="bg-neutral-800 p-8 rounded-2xl flex flex-col items-center text-center max-w-md w-full shadow-2xl border border-neutral-700">
-          <div className="bg-neutral-700/50 p-6 rounded-full mb-6">
-            <ShoppingBag
-              size={48}
-              className="text-gray-400"
-            />
-          </div>
-          <h2 className="text-2xl font-bold mb-2">Tu carrito está vacío</h2>
-          <p className="text-gray-400 mb-8">
-            Parece que aún no has agregado ningún plato delicioso a tu orden.
-          </p>
-          <Link
-            to="/menu"
-            className="w-full bg-red-600 text-white py-3 rounded-xl font-bold hover:bg-red-700 transition-colors"
-          >
-            Volver al Menú
-          </Link>
-        </div>
-      </div>
-    );
-  }
+  const startNiubizFlow = async (orderId: number) => {
+    setIsProcessingPayment(true);
+    try {
+      const response = await paymentService.startNiubizPayment({
+        orderId,
+        amount: total,
+      });
+
+      const { sessionKey, merchantId, purchaseNumber } = response.data;
+
+      // --- CORRECCIÓN 1: Guardar ANTES de abrir el modal ---
+      // Usamos el MISMO nombre que en PaymentValidate: "pending_payment_metadata"
+      const paymentMetadata = {
+        purchaseNumber: purchaseNumber,
+        amount: total,
+      };
+      localStorage.setItem(
+        "pending_payment_metadata",
+        JSON.stringify(paymentMetadata)
+      );
+      // -----------------------------------------------------
+
+      const config = {
+        sessiontoken: sessionKey,
+        channel: "web",
+        merchantid: merchantId,
+        purchasenumber: purchaseNumber,
+        amount: Number(total.toFixed(2)),
+        expirationminutes: "5",
+        timeouturl: window.location.origin + "/menu",
+        merchantlogo:
+          "https://static-content.vnforapps.com/v2/img/logo-comercio-demo.png",
+        merchantname: "Central Restaurante",
+
+        // Apunta a tu Backend Java
+        action: "http://localhost:8080/api/v1/payments/niubiz/callback",
+
+        // Ya NO necesitamos el complete para guardar, el backend redirige
+        complete: (params: any) => {
+          console.log("Esperando redirección del backend...");
+        },
+      };
+
+      if (window.VisanetCheckout) {
+        window.VisanetCheckout.configure(config);
+        window.VisanetCheckout.open();
+        // NO quitamos el loading (setIsProcessingPayment(false)) aquí,
+        // para que el usuario espere la redirección.
+      } else {
+        console.error("VisanetCheckout no disponible.");
+        setIsProcessingPayment(false);
+      }
+    } catch (error) {
+      console.error("Error iniciando Niubiz:", error);
+      toast.error("Error al conectar con el servidor de pagos");
+      setIsProcessingPayment(false);
+    }
+  };
+
+  // --- CONFIRMACIÓN FINAL ---
+  const confirmNiubizPayment = async (
+    token: string,
+    purchaseNumber: string,
+    amount: number
+  ) => {
+    setIsProcessingPayment(true);
+    try {
+      await paymentService.confirmNiubizPayment({
+        transactionToken: token,
+        purchaseNumber,
+        amount,
+      });
+
+      // ✅ ÉXITO: Redirigir a la nueva página
+      finishSuccess();
+    } catch (error) {
+      console.error(error);
+      toast.error("El pago fue procesado pero hubo un error al confirmarlo.");
+      setIsProcessingPayment(false);
+    }
+  };
+
+  const finishSuccess = () => {
+    setIsProcessingPayment(false);
+    clearCart();
+    navigate("/payment/success");
+  };
+
+  // --- RENDERIZADO ---
+  if (items.length === 0) return <EmptyCartView />;
 
   return (
     <section className="min-h-screen bg-neutral-900 text-white pt-24 pb-12 px-4 md:px-10">
@@ -137,259 +274,76 @@ export default function CheckoutPage() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* COLUMNA IZQUIERDA: Formularios o Login */}
           <div className="lg:col-span-2 space-y-8">
-            <div className="bg-neutral-800 p-6 rounded-2xl border border-neutral-700 shadow-lg">
-              <div className="flex items-center gap-3 mb-6 border-b border-neutral-700 pb-4">
-                <MapPin className="text-red-500" />
-                <h2 className="text-xl font-bold">Información de Entrega</h2>
-              </div>
+            {!user ? (
+              <LoginPrompt />
+            ) : (
+              <>
+                <DeliveryForm
+                  address={address}
+                  coordinates={coordinates}
+                  references={references}
+                  phone={phone}
+                  docType={docType}
+                  docNumber={docNumber}
+                  onOpenMap={() => setIsMapOpen(true)}
+                  setReferences={setReferences}
+                  setPhone={setPhone}
+                  setDocType={setDocType}
+                  setDocNumber={setDocNumber}
+                />
+                <PaymentSelector
+                  selectedMethod={paymentMethod}
+                  onSelect={setPaymentMethod}
+                />
 
-              <div className="grid gap-6">
-                {/* Botón para abrir Mapa vs Input de texto */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-400 mb-2">
-                    Dirección de entrega
-                  </label>
-
-                  <div className="flex gap-3">
-                    <div className="flex-1 bg-neutral-900 border border-neutral-600 rounded-xl p-3 text-white flex items-center justify-between">
-                      <span
-                        className={address ? "text-white" : "text-gray-500"}
-                      >
-                        {address || "Selecciona tu ubicación..."}
-                      </span>
-                      {coordinates && (
-                        <MapPin
-                          size={16}
-                          className="text-green-500"
-                        />
-                      )}
-                    </div>
-
-                    <button
-                      onClick={() => setIsMapOpen(true)}
-                      className="bg-neutral-700 hover:bg-neutral-600 text-white p-3 rounded-xl border border-neutral-600 transition-colors flex items-center gap-2"
-                      title="Abrir mapa"
-                    >
-                      <Map size={20} />
-                      <span className="hidden sm:inline">Mapa</span>
-                    </button>
+                {/* Avisos de estado de la pasarela (Solo tarjeta) */}
+                {paymentMethod === "card" && (
+                  <div className="fade-in transition-opacity duration-500">
+                    {!isScriptLoaded && !scriptError && (
+                      <p className="text-yellow-500 text-sm mt-2 flex items-center gap-2">
+                        <span className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse" />
+                        Conectando con servicios de seguridad...
+                      </p>
+                    )}
+                    {scriptError && (
+                      <p className="text-red-400 text-sm mt-2 p-3 bg-red-900/20 border border-red-800 rounded-lg">
+                        ⚠️ No se pudo cargar el sistema de pagos. Es posible que
+                        un bloqueador de anuncios (AdBlock) esté interfiriendo.
+                      </p>
+                    )}
                   </div>
-                  {address && (
-                    <p className="text-xs text-gray-500 mt-1">
-                      Coordenadas: {coordinates?.lat.toFixed(4)},{" "}
-                      {coordinates?.lng.toFixed(4)}
-                    </p>
-                  )}
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-400 mb-2">
-                      Referencia (Opcional)
-                    </label>
-                    <input
-                      type="text"
-                      value={references}
-                      onChange={(e) => setReferences(e.target.value)}
-                      placeholder="Frente al parque..."
-                      className="w-full bg-neutral-900 border border-neutral-600 rounded-xl p-3 text-white focus:ring-2 focus:ring-red-600 focus:outline-none transition-all"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-400 mb-2">
-                      Teléfono de contacto
-                    </label>
-                    <input
-                      type="tel"
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                      placeholder="999 999 999"
-                      className="w-full bg-neutral-900 border border-neutral-600 rounded-xl p-3 text-white focus:ring-2 focus:ring-red-600 focus:outline-none transition-all"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-neutral-800 p-6 rounded-2xl border border-neutral-700 shadow-lg">
-              <div className="flex items-center gap-3 mb-6 border-b border-neutral-700 pb-4">
-                <CreditCard className="text-red-500" />
-                <h2 className="text-xl font-bold">Método de Pago</h2>
-              </div>
-
-              <div className="grid gap-4 md:grid-cols-3">
-                <div
-                  onClick={() => setPaymentMethod("card")}
-                  className={`cursor-pointer border rounded-xl p-4 flex flex-col items-center gap-3 transition-all ${
-                    paymentMethod === "card"
-                      ? "bg-red-600/10 border-red-600 text-red-500"
-                      : "bg-neutral-900 border-neutral-600 hover:border-gray-400"
-                  }`}
-                >
-                  <CreditCard size={32} />
-                  <span className="font-semibold text-sm">
-                    Tarjeta (Online)
-                  </span>
-                </div>
-
-                <div
-                  onClick={() => setPaymentMethod("yape")}
-                  className={`cursor-pointer border rounded-xl p-4 flex flex-col items-center gap-3 transition-all ${
-                    paymentMethod === "yape"
-                      ? "bg-red-600/10 border-red-600 text-red-500"
-                      : "bg-neutral-900 border-neutral-600 hover:border-gray-400"
-                  }`}
-                >
-                  <Smartphone size={32} />
-                  <span className="font-semibold text-sm">Yape / Plin</span>
-                </div>
-
-                <div
-                  onClick={() => setPaymentMethod("cash")}
-                  className={`cursor-pointer border rounded-xl p-4 flex flex-col items-center gap-3 transition-all ${
-                    paymentMethod === "cash"
-                      ? "bg-red-600/10 border-red-600 text-red-500"
-                      : "bg-neutral-900 border-neutral-600 hover:border-gray-400"
-                  }`}
-                >
-                  <Banknote size={32} />
-                  <span className="font-semibold text-sm">Contraentrega</span>
-                </div>
-              </div>
-
-              <div className="mt-4 p-3 bg-neutral-900/50 rounded-lg text-sm text-gray-400">
-                {paymentMethod === "card" &&
-                  "Serás redirigido a la pasarela de pago segura al confirmar."}
-                {paymentMethod === "yape" &&
-                  "Te mostraremos el QR al confirmar el pedido."}
-                {paymentMethod === "cash" &&
-                  "Pagas en efectivo al recibir tu pedido."}
-              </div>
-            </div>
+                )}
+              </>
+            )}
           </div>
 
+          {/* COLUMNA DERECHA: Resumen */}
           <div className="lg:col-span-1">
-            <div className="bg-neutral-800 rounded-2xl border border-neutral-700 shadow-lg sticky top-24 overflow-hidden">
-              <div className="p-6 border-b border-neutral-700">
-                <h2 className="text-xl font-bold">Resumen de Orden</h2>
-              </div>
-
-              <div className="max-h-[400px] overflow-y-auto p-6 space-y-6">
-                {items.map((item) => (
-                  <div
-                    key={item.cartItemId}
-                    className="flex gap-4"
-                  >
-                    <img
-                      src={item.product.imageUrl}
-                      alt={item.product.name}
-                      className="w-16 h-16 rounded-lg object-cover bg-neutral-700"
-                    />
-                    <div className="flex-1">
-                      <div className="flex justify-between items-start">
-                        <h4 className="font-semibold text-sm line-clamp-2">
-                          {item.product.name}
-                        </h4>
-                        <button
-                          onClick={() => removeItem(item.cartItemId)}
-                          className="text-gray-500 hover:text-red-500 transition-colors"
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-                      <p className="text-xs text-gray-400 mt-1">
-                        Cant: {item.quantity}
-                      </p>
-
-                      {item.selectedExtras.length > 0 && (
-                        <p className="text-xs text-gray-500 mt-1">
-                          + {item.selectedExtras.map((e) => e.name).join(", ")}
-                        </p>
-                      )}
-
-                      <div className="text-red-500 font-bold text-sm mt-1">
-                        S/ {(item.finalPrice * item.quantity).toFixed(2)}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {/* Totales */}
-              <div className="p-6 bg-neutral-900/50 border-t border-neutral-700 space-y-3">
-                <div className="flex justify-between text-gray-400">
-                  <span>Subtotal</span>
-                  <span>S/ {subtotal.toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between text-gray-400">
-                  <span>Costo de envío</span>
-                  <span>S/ {deliveryFee.toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between text-xl font-bold text-white pt-3 border-t border-neutral-700">
-                  <span>Total</span>
-                  <span>S/ {total.toFixed(2)}</span>
-                </div>
-
-                <button
-                  onClick={handlePlaceOrder}
-                  disabled={isLoading}
-                  className="w-full mt-6 bg-red-600 text-white py-4 rounded-xl font-bold shadow-lg shadow-red-900/40 hover:bg-red-700 hover:shadow-red-900/60 transition-all transform active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center"
-                >
-                  {isLoading ? (
-                    <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  ) : (
-                    "Confirmar Pedido"
-                  )}
-                </button>
-              </div>
-            </div>
+            <OrderSummary
+              items={items}
+              subtotal={subtotal}
+              deliveryFee={deliveryFee}
+              total={total}
+              isLoading={isLoading}
+              isUserLoggedIn={!!user}
+              onRemoveItem={removeItem}
+              onProcessOrder={handleProcessOrder}
+            />
           </div>
         </div>
       </div>
 
-      {isMapOpen && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
-          <div
-            className="absolute inset-0 bg-black/80 backdrop-blur-sm"
-            onClick={() => setIsMapOpen(false)}
-          ></div>
-          <div className="relative bg-neutral-900 w-full max-w-2xl rounded-2xl border border-neutral-700 shadow-2xl overflow-hidden flex flex-col">
-            <div className="p-4 border-b border-neutral-800 flex justify-between items-center">
-              <h3 className="font-bold text-lg">Selecciona tu ubicación</h3>
-              <button
-                onClick={() => setIsMapOpen(false)}
-                className="p-2 hover:bg-neutral-800 rounded-full transition-colors"
-              >
-                <X size={20} />
-              </button>
-            </div>
-
-            <div className="p-4">
-              <LocationPicker
-                onLocationSelect={handleLocationSelect}
-                initialLat={coordinates?.lat}
-                initialLng={coordinates?.lng}
-              />
-            </div>
-
-            <div className="p-4 border-t border-neutral-800 flex justify-end gap-3 bg-neutral-900">
-              <button
-                onClick={() => setIsMapOpen(false)}
-                className="px-4 py-2 rounded-lg text-gray-300 hover:bg-neutral-800 transition-colors"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={handleConfirmMap}
-                className="px-6 py-2 rounded-lg bg-red-600 text-white font-bold hover:bg-red-700 transition-colors"
-              >
-                Confirmar Ubicación
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Modal Flotante del Mapa */}
+      <MapModal
+        isOpen={isMapOpen}
+        onClose={() => setIsMapOpen(false)}
+        onConfirm={handleConfirmMap}
+        onLocationSelect={handleLocationSelect}
+        initialLat={coordinates?.lat}
+        initialLng={coordinates?.lng}
+      />
     </section>
   );
 }

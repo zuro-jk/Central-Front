@@ -1,4 +1,4 @@
-import { useGetFeaturedProductsQuery } from "@/core/hooks/products/useProduct.hook";
+import { useGetFeaturedProductsQuery } from "@/core/hooks/products/useProduct.hooks";
 import { useAuthStore } from "@/core/stores/auth/auth.store";
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";

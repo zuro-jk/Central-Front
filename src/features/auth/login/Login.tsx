@@ -1,6 +1,6 @@
-import { useLoginMutation } from "@/core/hooks/auth/useLoginMutation";
-import type { LoginSchema } from "@/core/schemas/loginSchema";
-import { loginSchema } from "@/core/schemas/loginSchema";
+import { useLoginMutation } from "@/core/hooks/auth/useAuth.hooks";
+import type { LoginSchema } from "@/core/schemas/auth/login.schema";
+import { loginSchema } from "@/core/schemas/auth/login.schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 
