@@ -14,6 +14,7 @@ import LoginPrompt from "./components/LoginPrompt";
 import MapModal from "./components/MapModal";
 import OrderSummary from "./components/OrderSummary";
 import PaymentSelector from "./components/PaymentSelector";
+import { BASE_URL } from "@/core/api/api";
 
 export default function CheckoutPage() {
   const navigate = useNavigate();
@@ -204,7 +205,7 @@ export default function CheckoutPage() {
         merchantname: "Central Restaurante",
 
         // Apunta a tu Backend Java
-        action: "http://localhost:8080/api/v1/payments/niubiz/callback",
+        action: `${BASE_URL.replace(/\/$/, "")}/payments/niubiz/callback`,
 
         // Ya NO necesitamos el complete para guardar, el backend redirige
         complete: (params: any) => {
