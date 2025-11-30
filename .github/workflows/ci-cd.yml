@@ -19,10 +19,11 @@ jobs:
 
       - name: Construir y Subir Frontend
         run: |
-          cd frontend
-          # --- CAMBIO AQUÍ: Agregamos --build-arg ---
+          # --- CORRECCIÓN: Quitamos 'cd frontend' ---
+          # Ya estamos en la raíz del proyecto.
+          
           docker build \
             --build-arg VITE_API_BASE_URL=http://34.31.191.162:8080/api/v1/ \
             -t ${{ secrets.DOCKER_USERNAME }}/central-frontend:latest .
-          # ------------------------------------------
+          
           docker push ${{ secrets.DOCKER_USERNAME }}/central-frontend:latest
