@@ -4,7 +4,7 @@ import { useAuthStore } from "@/core/stores/auth/auth.store";
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 
-function UserSectionMenu() {
+export function UserSectionMenu() {
   const { user, accessToken, logout } = useAuthStore();
   const isLoggedIn = Boolean(accessToken && user);
 
@@ -17,7 +17,15 @@ function UserSectionMenu() {
             {user.firstName || user.username}
           </span>
         </div>
-
+        {/* --- NUEVO LINK AQUÍ --- */}
+        <Link
+          to="/my-orders"
+          className="block px-4 py-2 text-gray-300 hover:bg-gray-800 hover:text-white transition flex items-center gap-2"
+        >
+          {/* Opcional: Agregar icono pequeño */}
+          Mis Pedidos
+        </Link>
+        {/* ----------------------- */}
         {user.roles?.includes("ROLE_ADMIN") && (
           <Link
             to="/admin/dashboard"
@@ -26,10 +34,11 @@ function UserSectionMenu() {
             Dashboard
           </Link>
         )}
-
+        <div className="h-px bg-gray-700 my-2 mx-4"></div>{" "}
+        {/* Separador visual */}
         <button
           onClick={logout}
-          className="block w-full text-left px-4 py-2 text-gray-300 hover:bg-gray-800 hover:text-white transition"
+          className="block w-full text-left px-4 py-2 text-red-400 hover:bg-gray-800 transition"
         >
           Cerrar sesión
         </button>

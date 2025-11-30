@@ -21,6 +21,7 @@ import ProductsSupplier from "@/features/supplier/products/Products";
 import PageWaiter from "@/features/waiter/pageWaiter";
 import { Route, Routes } from "react-router-dom";
 import PrivateRoute from "./PrivateRoute";
+import PurchaseHistory from "@/features/client/orders/PurchaseHistory";
 
 export default function AppRoutes() {
   return (
@@ -42,6 +43,11 @@ export default function AppRoutes() {
         <Route
           path="/contact"
           element={<Contact />}
+        />
+
+        <Route
+          path="/my-orders"
+          element={<PurchaseHistory />}
         />
 
         {/* AHORA ES PÚBLICA: El componente maneja la restricción interna */}

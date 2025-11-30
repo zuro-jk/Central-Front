@@ -145,6 +145,7 @@ export function useAddLocalPaymentMutation() {
   return useMutation({
     mutationFn: (params: { id: number; data: PaymentInOrderRequest }) =>
       orderService.addLocalPayment(params.id, params.data),
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: orderKeys.details() });
     },

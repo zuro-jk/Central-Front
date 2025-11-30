@@ -1,59 +1,7 @@
+import { UserSectionMenu } from "@/components/Header/PublicHeader";
 import { useGetFeaturedProductsQuery } from "@/core/hooks/products/useProduct.hooks";
-import { useAuthStore } from "@/core/stores/auth/auth.store";
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-
-function UserSectionMenu() {
-  const { user, accessToken, logout } = useAuthStore();
-
-  const isLoggedIn = Boolean(accessToken && user);
-
-  if (isLoggedIn && user) {
-    return (
-      <div className="py-2">
-        <div className="px-4 py-2 text-sm text-gray-300">
-          Hola,{" "}
-          <span className="font-semibold text-white">
-            {user.firstName || user.username}
-          </span>
-        </div>
-
-        {user.roles?.includes("ROLE_ADMIN") && (
-          <Link
-            to="/admin/dashboard"
-            className="block px-4 py-2 text-gray-300 hover:bg-gray-800 hover:text-white transition"
-          >
-            Dashboard
-          </Link>
-        )}
-
-        <button
-          onClick={logout}
-          className="block w-full text-left px-4 py-2 text-gray-300 hover:bg-gray-800 hover:text-white transition"
-        >
-          Cerrar sesión
-        </button>
-      </div>
-    );
-  }
-
-  return (
-    <div className="py-2">
-      <Link
-        to="/auth/login"
-        className="block px-4 py-2 text-gray-300 hover:bg-gray-800 hover:text-white transition"
-      >
-        Iniciar Sesión
-      </Link>
-      <Link
-        to="/auth/signup"
-        className="block px-4 py-2 text-gray-300 hover:bg-gray-800 hover:text-white transition"
-      >
-        Registrarse
-      </Link>
-    </div>
-  );
-}
 
 function Home() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);

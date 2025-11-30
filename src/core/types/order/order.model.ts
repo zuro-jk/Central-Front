@@ -6,6 +6,7 @@ export interface OrderDetailInOrderResponse {
   id: number;
   productId: number;
   productName: string;
+  productImageUrl: string;
   quantity: number;
   unitPrice: number;
 }
