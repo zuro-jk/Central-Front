@@ -2,7 +2,7 @@ name: Frontend CI/CD
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
 
 jobs:
   build-push:
@@ -21,9 +21,32 @@ jobs:
         run: |
           # --- CORRECCIÓN: Quitamos 'cd frontend' ---
           # Ya estamos en la raíz del proyecto.
-          
+
           docker build \
             --build-arg VITE_API_BASE_URL=http://34.31.191.162:8080/api/v1/ \
             -t ${{ secrets.DOCKER_USERNAME }}/central-frontend:latest .
-          
+
           docker push ${{ secrets.DOCKER_USERNAME }}/central-frontend:latest
+
+deploy:
+  needs: build-push
+  runs-on: ubuntu-latest
+  steps:
+    - name: Desplegar en Google Cloud
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ${{ secrets.SSH_HOST }}
+        username: ${{ secrets.SSH_USER }}
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        script: |
+          # Entramos a la carpeta donde está tu docker-compose en el servidor
+          cd central-app
+
+          # 1. Descargamos solo la nueva imagen del frontend
+          docker-compose pull frontend
+
+          # 2. Reiniciamos solo el contenedor del frontend con la nueva versión
+          docker-compose up -d frontend
+
+          # 3. Borramos imágenes viejas para no llenar el disco
+          docker image prune -f
