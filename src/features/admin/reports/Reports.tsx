@@ -23,7 +23,8 @@ function Reports() {
           date?: string;
         }>;
         if (mounted) setOrders(Array.isArray(list) ? list : []);
-      } catch (_) {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      } catch (error) {
         if (mounted) setOrders([]);
       }
     })();
@@ -38,7 +39,7 @@ function Reports() {
       (o) =>
         o.date &&
         (() => {
-          const d = new Date(o.date as any);
+          const d = new Date(o.date);
           return (
             d.getFullYear() === today.getFullYear() &&
             d.getMonth() === today.getMonth() &&
@@ -62,7 +63,7 @@ function Reports() {
     const values = days.map((d) => {
       const sum = orders.reduce((acc, o) => {
         if (!o.date) return acc;
-        const od = new Date(o.date as any);
+        const od = new Date(o.date);
         const sameDay =
           od.getFullYear() === d.getFullYear() &&
           od.getMonth() === d.getMonth() &&
@@ -90,10 +91,10 @@ function Reports() {
     () => [] as Array<{ label: string; value: number }>,
     []
   );
-  const salesByHour = useMemo(
-    () => [] as Array<{ hour: number; value: number }>,
-    []
-  );
+  // const salesByHour = useMemo(
+  //   () => [] as Array<{ hour: number; value: number }>,
+  //   []
+  // );
   const recentOrders = useMemo(
     () =>
       orders
@@ -202,7 +203,7 @@ function Reports() {
                         style={{
                           height: 0,
                           animation: `growBar 800ms ${delay}ms forwards`,
-                          ["--bar-h" as any]: `${h}px`,
+                          ["--bar-h"]: `${h}px`,
                         }}
                         aria-label={`${d.day}: S/ ${d.value}`}
                         title={`${d.day}: S/ ${d.value}`}
@@ -337,7 +338,7 @@ function Reports() {
                     </td>
                   </tr>
                 )}
-                {recentOrders.map((o, idx) => (
+                {recentOrders.map((o) => (
                   <tr
                     key={o.id}
                     className="border-t border-gray-100"

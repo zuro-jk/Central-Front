@@ -1,5 +1,3 @@
-import React from "react";
-
 function Dashboard() {
   const mesasAsignadas = 5;
   const pedidosActivos = 3;
@@ -15,17 +13,23 @@ function Dashboard() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <div className="bg-white shadow rounded-xl p-5 text-center">
           <h2 className="text-gray-500 mb-2">Mesas Asignadas</h2>
-          <p className="text-2xl font-semibold text-red-600">{mesasAsignadas}</p>
+          <p className="text-2xl font-semibold text-red-600">
+            {mesasAsignadas}
+          </p>
         </div>
 
         <div className="bg-white shadow rounded-xl p-5 text-center">
           <h2 className="text-gray-500 mb-2">Pedidos Activos</h2>
-          <p className="text-2xl font-semibold text-orange-500">{pedidosActivos}</p>
+          <p className="text-2xl font-semibold text-orange-500">
+            {pedidosActivos}
+          </p>
         </div>
 
         <div className="bg-white shadow rounded-xl p-5 text-center">
           <h2 className="text-gray-500 mb-2">Pedidos Listos</h2>
-          <p className="text-2xl font-semibold text-green-500">{pedidosListos}</p>
+          <p className="text-2xl font-semibold text-green-500">
+            {pedidosListos}
+          </p>
         </div>
 
         <div className="bg-white shadow rounded-xl p-5 text-center">
@@ -38,7 +42,6 @@ function Dashboard() {
         <h2 className="text-xl font-semibold mb-4 text-gray-800">
           Notificaciones
         </h2>
-       
       </div>
     </div>
   );
