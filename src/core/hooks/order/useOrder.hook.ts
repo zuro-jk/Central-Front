@@ -81,7 +81,7 @@ export function useUpdateOrderMutation() {
   return useMutation({
     mutationFn: (params: { id: number; data: OrderRequest; lang?: string }) =>
       orderService.updateOrder(params.id, params.data, params.lang),
-    onSuccess: (data, variables) => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
         queryKey: orderKeys.detail(variables.id, variables.lang || "es"),
       });
@@ -95,7 +95,7 @@ export function useCancelOrderMutation() {
   return useMutation({
     mutationFn: (params: { id: number; lang?: string }) =>
       orderService.cancelOrder(params.id, params.lang),
-    onSuccess: (data, variables) => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
         queryKey: orderKeys.detail(variables.id, variables.lang || "es"),
       });
@@ -115,7 +115,7 @@ export function useUpdateOrderStatusMutation() {
       data: UpdateStatusRequest;
       lang?: string;
     }) => orderService.updateOrderStatus(params.id, params.data, params.lang),
-    onSuccess: (data, variables) => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
         queryKey: orderKeys.detail(variables.id, variables.lang || "es"),
       });
@@ -132,7 +132,7 @@ export function useAssignDriverMutation() {
       data: AssignDriverRequest;
       lang?: string;
     }) => orderService.assignDriver(params.id, params.data, params.lang),
-    onSuccess: (data, variables) => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
         queryKey: orderKeys.detail(variables.id, variables.lang || "es"),
       });
@@ -146,7 +146,7 @@ export function useAddLocalPaymentMutation() {
     mutationFn: (params: { id: number; data: PaymentInOrderRequest }) =>
       orderService.addLocalPayment(params.id, params.data),
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    onSuccess: (_, variables) => {
+    onSuccess: (_, __) => {
       queryClient.invalidateQueries({ queryKey: orderKeys.details() });
     },
   });

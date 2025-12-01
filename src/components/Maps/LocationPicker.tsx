@@ -110,7 +110,7 @@ export default function LocationPicker({
     googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "",
   });
 
-  const [map, setMap] = useState<google.maps.Map | null>(null);
+  const [, setMap] = useState<google.maps.Map | null>(null);
   const [position, setPosition] = useState(defaultCenter);
   const [address, setAddress] = useState("");
   const [loadingAddress, setLoadingAddress] = useState(false);

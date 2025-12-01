@@ -15,6 +15,7 @@ import MapModal from "./components/MapModal";
 import OrderSummary from "./components/OrderSummary";
 import PaymentSelector from "./components/PaymentSelector";
 import { BASE_URL } from "@/core/api/api";
+import type { AxiosError } from "axios";
 
 export default function CheckoutPage() {
   const navigate = useNavigate();
@@ -160,10 +161,12 @@ export default function CheckoutPage() {
             finishSuccess();
           }
         },
-        onError: (error: any) => {
+        onError: (error) => {
           console.error(error);
+          const axiosError = error as AxiosError<{ message: string }>;
+
           toast.error(
-            error.response?.data?.message || "Error al crear la orden"
+            axiosError.response?.data?.message || "Error al crear la orden"
           );
         },
       }
@@ -208,7 +211,7 @@ export default function CheckoutPage() {
         action: `${BASE_URL.replace(/\/$/, "")}/payments/niubiz/callback`,
 
         // Ya NO necesitamos el complete para guardar, el backend redirige
-        complete: (params: any) => {
+        complete: () => {
           console.log("Esperando redirección del backend...");
         },
       };
@@ -229,28 +232,6 @@ export default function CheckoutPage() {
     }
   };
 
-  // --- CONFIRMACIÓN FINAL ---
-  const confirmNiubizPayment = async (
-    token: string,
-    purchaseNumber: string,
-    amount: number
-  ) => {
-    setIsProcessingPayment(true);
-    try {
-      await paymentService.confirmNiubizPayment({
-        transactionToken: token,
-        purchaseNumber,
-        amount,
-      });
-
-      // ✅ ÉXITO: Redirigir a la nueva página
-      finishSuccess();
-    } catch (error) {
-      console.error(error);
-      toast.error("El pago fue procesado pero hubo un error al confirmarlo.");
-      setIsProcessingPayment(false);
-    }
-  };
 
   const finishSuccess = () => {
     setIsProcessingPayment(false);
