@@ -1,6 +1,8 @@
+import type { LoginRequest, SignupRequest } from "@/core/types/auth/auth.model";
 import { useMutation } from "@tanstack/react-query";
 import type { AxiosError } from "axios";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 import { roleDefaultRoutes } from "../../constants/role-routes";
 import {
   authService,
@@ -8,8 +10,6 @@ import {
 } from "../../services/auth/auth.service";
 import { useAuthStore } from "../../stores/auth/auth.store";
 import type { ApiError, ApiResponse } from "../../types/base/api-response";
-import type { LoginRequest, SignupRequest } from "@/core/types/auth/auth.model";
-import { toast } from "react-toastify";
 
 export function useLoginMutation() {
   const navigate = useNavigate();
@@ -26,8 +26,19 @@ export function useLoginMutation() {
       navigate(redirectPath, { replace: true });
     },
     onError: (error) => {
-      console.error(error);
-      const message = error.response?.data?.message || "Error de autenticación";
+      console.error("Error en login:", error);
+
+      let message = "Error de autenticación";
+
+      // Lógica personalizada para mensajes de error
+      if (error.response?.status === 401) {
+        message = "Credenciales inválidas. Verifica tu usuario y contraseña.";
+      } else if (error.response?.data?.message) {
+        message = error.response.data.message;
+      } else if (error.message === "Network Error") {
+        message = "No se pudo conectar con el servidor.";
+      }
+
       toast.error(message);
     },
   });

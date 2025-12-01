@@ -1,12 +1,10 @@
 import PublicFooter from "@/components/Footer/PublicFooter";
 import PublicHeader from "@/components/Header/PublicHeader";
-import { Outlet, useLocation } from "react-router-dom";
+import { Outlet } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 export default function PublicLayout() {
-  const location = useLocation();
-  const isHome = location.pathname === "/";
   return (
     <div className="min-h-screen flex flex-col">
       <ToastContainer
@@ -22,7 +20,7 @@ export default function PublicLayout() {
         theme="dark"
       />
 
-      {!isHome && <PublicHeader />}
+      <PublicHeader />
 
       <main className="flex-1">
         <Outlet />

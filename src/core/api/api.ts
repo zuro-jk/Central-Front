@@ -31,14 +31,18 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    const isLoginRequest = error.config?.url?.includes("login");
+
     if (
       error.response &&
-      (error.response.status === 401 || error.response.status === 403)
+      (error.response.status === 401 || error.response.status === 403) &&
+      !isLoginRequest
     ) {
       useAuthStore.getState().logout();
       window.location.href = "/auth/login";
       toast.warn("Sesión expirada o no autorizada.");
     }
+
     return Promise.reject(error);
   }
 );
