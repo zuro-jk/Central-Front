@@ -23,7 +23,7 @@ function Reports() {
           date?: string;
         }>;
         if (mounted) setOrders(Array.isArray(list) ? list : []);
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
       } catch (error) {
         if (mounted) setOrders([]);
       }
@@ -200,11 +200,16 @@ function Reports() {
                     >
                       <div
                         className="w-full bg-red-300/70 group-hover:bg-red-400 transition-[height,background-color] duration-700 ease-out rounded-md"
-                        style={{
-                          height: 0,
-                          animation: `growBar 800ms ${delay}ms forwards`,
-                          ["--bar-h"]: `${h}px`,
-                        }}
+                        // --- AQUÍ ESTÁ LA CORRECCIÓN ---
+                        // 1. Usamos '--bar-h' como string directo
+                        // 2. Hacemos casting 'as React.CSSProperties' para que TS lo acepte
+                        style={
+                          {
+                            height: 0,
+                            animation: `growBar 800ms ${delay}ms forwards`,
+                            "--bar-h": `${h}px`,
+                          } as React.CSSProperties
+                        }
                         aria-label={`${d.day}: S/ ${d.value}`}
                         title={`${d.day}: S/ ${d.value}`}
                       />
